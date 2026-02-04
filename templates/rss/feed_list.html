@@ -42,7 +42,7 @@
             <p class="text-sm text-gray-600 line-clamp-2 mb-4">{{ feed.description|default:'暂无描述' }}</p>
             
             <div class="flex items-center justify-between text-xs text-gray-400 mb-4">
-                <span><i class="far fa-clock mr-1"></i>{{ feed.last_fetched|default:'未更新'|timesince }}</span>
+                <span><i class="far fa-clock mr-1"></i>{{ feed.last_fetched|timesince|default:'未更新' }}</span>
                 <span class="{% if feed.is_active %}text-green-500{% else %}text-gray-400{% endif %}">
                     <i class="fas fa-circle text-xs mr-1"></i>{{ feed.is_active|yesno:'激活,暂停' }}
                 </span>
