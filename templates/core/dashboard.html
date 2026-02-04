@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+
+{% block title %}仪表盘 - 信息阅读工作台{% endblock %}
+{% block page_title %}仪表盘{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500 mb-1">RSS 订阅源</p>
+                <p class="text-3xl font-bold text-gray-800">{{ stats.rss_feeds }}</p>
+                <p class="text-sm text-orange-600 mt-1">
+                    <i class="fas fa-circle text-xs mr-1"></i>{{ stats.rss_unread }} 未读
+                </p>
+            </div>
+            <div class="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-rss text-orange-600 text-2xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500 mb-1">新闻文章</p>
+                <p class="text-3xl font-bold text-gray-800">{{ stats.news_count }}</p>
+                <p class="text-sm text-blue-600 mt-1">
+                    <i class="fas fa-circle text-xs mr-1"></i>{{ stats.news_unread }} 未读
+                </p>
+            </div>
+            <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-newspaper text-blue-600 text-2xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500 mb-1">笔记</p>
+                <p class="text-3xl font-bold text-gray-800">{{ stats.notes_count }}</p>
+                <p class="text-sm text-green-600 mt-1">
+                    <i class="fas fa-thumbtack text-xs mr-1"></i>{{ stats.pinned_notes }} 置顶
+                </p>
+            </div>
+            <div class="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-sticky-note text-green-600 text-2xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500 mb-1">今日阅读</p>
+                <p class="text-3xl font-bold text-gray-800">{{ recent_rss|length }}</p>
+                <p class="text-sm text-purple-600 mt-1">
+                    <i class="fas fa-chart-line text-xs mr-1"></i>保持好习惯
+                </p>
+            </div>
+            <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-book-open text-purple-600 text-2xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Recent RSS Articles -->
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-rss text-orange-600"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">最新 RSS 文章</h2>
+                        <p class="text-sm text-gray-500">来自你的订阅源</p>
+                    </div>
+                </div>
+                <a href="{% url 'rss:feed_list' %}" class="text-primary-600 hover:text-primary-700 font-medium text-sm">
+                    查看全部 <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+            
+            <div class="divide-y divide-gray-100">
+                {% for article in recent_rss %}
+                <div class="p-6 hover:bg-gray-50 transition-colors group">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                            {{ article.feed.title|first|upper }}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="text-xs text-gray-500">{{ article.feed.title }}</span>
+                                <span class="text-gray-300">·</span>
+                                <span class="text-xs text-gray-400">{{ article.published_at|timesince }}前</span>
+                                {% if not article.is_read %}
+                                <span class="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs rounded-full">未读</span>
+                                {% endif %}
+                            </div>
+                            <h3 class="font-medium text-gray-800 mb-2 group-hover:text-primary-600 transition-colors">
+                                <a href="{% url 'rss:article_detail' article.id %}">{{ article.title }}</a>
+                            </h3>
+                            <p class="text-sm text-gray-600 line-clamp-2">{{ article.description|striptags|truncatewords:30 }}</p>
+                        </div>
+                        <div class="flex-shrink-0 flex space-x-2">
+                            <button onclick="toggleStar({{ article.id }}, 'rss')" class="p-2 rounded-lg hover:bg-gray-100 transition-colors {% if article.is_starred %}text-yellow-500{% else %}text-gray-400{% endif %}">
+                                <i class="fas fa-star"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-12 text-center">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-rss text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-gray-500">还没有 RSS 文章</p>
+                    <a href="{% url 'rss:feed_add' %}" class="inline-flex items-center mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>添加订阅源
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Recent News -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-newspaper text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">最新新闻</h2>
+                        <p class="text-sm text-gray-500">来自 API 导入</p>
+                    </div>
+                </div>
+                <a href="{% url 'news:article_list' %}" class="text-primary-600 hover:text-primary-700 font-medium text-sm">
+                    查看全部 <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+            
+            <div class="divide-y divide-gray-100">
+                {% for article in recent_news %}
+                <div class="p-6 hover:bg-gray-50 transition-colors group">
+                    <div class="flex items-start space-x-4">
+                        {% if article.image_url %}
+                        <img src="{{ article.image_url }}" alt="" class="w-20 h-20 object-cover rounded-xl flex-shrink-0">
+                        {% else %}
+                        <div class="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-newspaper text-blue-500 text-2xl"></i>
+                        </div>
+                        {% endif %}
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-2 mb-1">
+                                {% if article.source %}
+                                <span class="text-xs text-gray-500">{{ article.source.name }}</span>
+                                <span class="text-gray-300">·</span>
+                                {% endif %}
+                                <span class="text-xs text-gray-400">{{ article.published_at|timesince }}前</span>
+                                {% if article.category %}
+                                <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">{{ article.category }}</span>
+                                {% endif %}
+                            </div>
+                            <h3 class="font-medium text-gray-800 mb-2 group-hover:text-primary-600 transition-colors">
+                                <a href="{% url 'news:article_detail' article.id %}">{{ article.title }}</a>
+                            </h3>
+                            <p class="text-sm text-gray-600 line-clamp-2">{{ article.summary|truncatewords:25 }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-12 text-center">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-newspaper text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-gray-500">还没有新闻文章</p>
+                    <a href="{% url 'news:source_add' %}" class="inline-flex items-center mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>添加新闻源
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">快捷操作</h3>
+            <div class="space-y-3">
+                <a href="{% url 'rss:feed_add' %}" class="flex items-center space-x-3 p-3 rounded-xl border border-gray-200 hover:border-orange-500 hover:bg-orange-50 transition-all group">
+                    <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                        <i class="fas fa-rss text-orange-600"></i>
+                    </div>
+                    <span class="font-medium text-gray-700 group-hover:text-orange-700">添加 RSS 订阅</span>
+                </a>
+                
+                <a href="{% url 'news:source_add' %}" class="flex items-center space-x-3 p-3 rounded-xl border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all group">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                        <i class="fas fa-plus text-blue-600"></i>
+                    </div>
+                    <span class="font-medium text-gray-700 group-hover:text-blue-700">添加新闻源</span>
+                </a>
+                
+                <a href="{% url 'notes:note_add' %}" class="flex items-center space-x-3 p-3 rounded-xl border border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all group">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                        <i class="fas fa-pen text-green-600"></i>
+                    </div>
+                    <span class="font-medium text-gray-700 group-hover:text-green-700">写笔记</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Recent Notes -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800">最近笔记</h3>
+                <a href="{% url 'notes:note_list' %}" class="text-primary-600 hover:text-primary-700 text-sm">
+                    查看全部
+                </a>
+            </div>
+            
+            <div class="p-4 space-y-3">
+                {% for note in recent_notes %}
+                <div class="p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group">
+                    <div class="flex items-start justify-between mb-2">
+                        <h4 class="font-medium text-gray-800 line-clamp-1 group-hover:text-primary-600 transition-colors">
+                            <a href="{% url 'notes:note_detail' note.id %}">{{ note.title }}</a>
+                        </h4>
+                        {% if note.is_pinned %}
+                        <i class="fas fa-thumbtack text-primary-500 text-sm"></i>
+                        {% endif %}
+                    </div>
+                    <p class="text-sm text-gray-600 line-clamp-2 mb-2">{{ note.content|striptags|truncatewords:20 }}</p>
+                    <div class="flex items-center justify-between text-xs text-gray-400">
+                        <span>{{ note.updated_at|timesince }}前</span>
+                        {% if note.tags %}
+                        <span class="px-2 py-0.5 bg-gray-200 rounded">{{ note.get_tags_list.0 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8">
+                    <i class="fas fa-sticky-note text-gray-300 text-3xl mb-3"></i>
+                    <p class="text-gray-500 text-sm">还没有笔记</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Starred Articles -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div class="p-6 border-b border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-800">收藏文章</h3>
+            </div>
+            
+            <div class="p-4 space-y-3">
+                {% for article in starred_rss %}
+                <div class="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-star text-yellow-500"></i>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-800 line-clamp-1">{{ article.title }}</p>
+                        <p class="text-xs text-gray-500">{{ article.feed.title }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8">
+                    <i class="fas fa-star text-gray-300 text-3xl mb-3"></i>
+                    <p class="text-gray-500 text-sm">还没有收藏</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleStar(id, type) {
+    // AJAX call to toggle star status
+    fetch(`/api/${type}/${id}/star/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

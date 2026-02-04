@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block title %}API 文档 - 信息阅读工作台{% endblock %}
+{% block page_title %}API 文档{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">外部推送 API</h2>
+            <p class="text-gray-600">允许外部应用推送新闻至工作台数据库</p>
+        </div>
+        
+        <!-- API Key Section -->
+        <div class="bg-purple-50 rounded-xl p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">您的 API 密钥</h3>
+            <div class="flex items-center space-x-4">
+                <code id="apiKey" class="flex-1 bg-white px-4 py-3 rounded-xl text-sm font-mono text-gray-700 break-all">
+                    点击获取密钥
+                </code>
+                <button onclick="getApiKey()" class="px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors">
+                    获取密钥
+                </button>
+                <button onclick="copyApiKey()" class="px-4 py-2 border border-purple-600 text-purple-600 rounded-xl hover:bg-purple-50 transition-colors">
+                    复制
+                </button>
+            </div>
+            <p class="text-sm text-gray-500 mt-3">
+                <i class="fas fa-info-circle mr-1"></i>
+                请妥善保管您的 API 密钥，不要分享给他人
+            </p>
+        </div>
+        
+        <!-- API Endpoints -->
+        <div class="space-y-8">
+            <!-- Push Single News -->
+            <div>
+                <div class="flex items-center space-x-3 mb-4">
+                    <span class="px-3 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-full">POST</span>
+                    <code class="text-gray-800 font-mono">/api/v1/news/push/</code>
+                </div>
+                
+                <p class="text-gray-600 mb-4">推送单条新闻到工作台</p>
+                
+                <div class="bg-gray-900 rounded-xl p-4 overflow-x-auto">
+                    <pre class="text-sm text-gray-300"><code># 请求示例
+curl -X POST "https://your-domain.com/api/v1/news/push/" \
+  -H "X-API-Key: your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "新闻标题",
+    "link": "https://example.com/article/123",
+    "content": "新闻正文内容...",
+    "summary": "新闻摘要（可选）",
+    "author": "作者名（可选）",
+    "category": "分类（可选）",
+    "image_url": "https://example.com/image.jpg（可选）",
+    "published_at": "2024-01-15T10:30:00Z（可选，ISO 8601 格式）",
+    "source_name": "来源名称（可选）"
+  }'</code></pre>
+                </div>
+                
+                <div class="mt-4">
+                    <h4 class="font-medium text-gray-800 mb-2">请求参数</h4>
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-gray-600">参数</th>
+                                <th class="px-4 py-2 text-left text-gray-600">类型</th>
+                                <th class="px-4 py-2 text-left text-gray-600">必填</th>
+                                <th class="px-4 py-2 text-left text-gray-600">说明</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr>
+                                <td class="px-4 py-2 font-mono text-gray-800">title</td>
+                                <td class="px-4 py-2 text-gray-600">string</td>
+                                <td class="px-4 py-2"><span class="text-red-500">是</span></td>
+                                <td class="px-4 py-2 text-gray-600">新闻标题</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 font-mono text-gray-800">link</td>
+                                <td class="px-4 py-2 text-gray-600">string</td>
+                                <td class="px-4 py-2"><span class="text-red-500">是</span></td>
+                                <td class="px-4 py-2 text-gray-600">原文链接</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 font-mono text-gray-800">content</td>
+                                <td class="px-4 py-2 text-gray-600">string</td>
+                                <td class="px-4 py-2"><span class="text-gray-400">否</span></td>
+                                <td class="px-4 py-2 text-gray-600">新闻正文内容</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 font-mono text-gray-800">summary</td>
+                                <td class="px-4 py-2 text-gray-600">string</td>
+                                <td class="px-4 py-2"><span class="text-gray-400">否</span></td>
+                                <td class="px-4 py-2 text-gray-600">新闻摘要</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 font-mono text-gray-800">author</td>
+                                <td class="px-4 py-2 text-gray-600">string</td>
+                                <td class="px-4 py-2"><span class="text-gray-400">否</span></td>
+                                <td class="px-4 py-2 text-gray-600">作者名</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 font-mono text-gray-800">category</td>
+                                <td class="px-4 py-2 text-gray-600">string</td>
+                                <td class="px-4 py-2"><span class="text-gray-400">否</span></td>
+                                <td class="px-4 py-2 text-gray-600">分类</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 font-mono text-gray-800">image_url</td>
+                                <td class="px-4 py-2 text-gray-600">string</td>
+                                <td class="px-4 py-2"><span class="text-gray-400">否</span></td>
+                                <td class="px-4 py-2 text-gray-600">图片链接</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 font-mono text-gray-800">published_at</td>
+                                <td class="px-4 py-2 text-gray-600">string</td>
+                                <td class="px-4 py-2"><span class="text-gray-400">否</span></td>
+                                <td class="px-4 py-2 text-gray-600">发布时间（ISO 8601 格式）</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 font-mono text-gray-800">source_name</td>
+                                <td class="px-4 py-2 text-gray-600">string</td>
+                                <td class="px-4 py-2"><span class="text-gray-400">否</span></td>
+                                <td class="px-4 py-2 text-gray-600">来源名称</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Push Batch News -->
+            <div>
+                <div class="flex items-center space-x-3 mb-4">
+                    <span class="px-3 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-full">POST</span>
+                    <code class="text-gray-800 font-mono">/api/v1/news/push/batch/</code>
+                </div>
+                
+                <p class="text-gray-600 mb-4">批量推送多条新闻到工作台</p>
+                
+                <div class="bg-gray-900 rounded-xl p-4 overflow-x-auto">
+                    <pre class="text-sm text-gray-300"><code># 请求示例
+curl -X POST "https://your-domain.com/api/v1/news/push/batch/" \
+  -H "X-API-Key: your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source_name": "批量推送来源（可选）",
+    "articles": [
+      {
+        "title": "新闻标题1",
+        "link": "https://example.com/article/1",
+        "content": "内容1..."
+      },
+      {
+        "title": "新闻标题2",
+        "link": "https://example.com/article/2",
+        "content": "内容2..."
+      }
+    ]
+  }'</code></pre>
+                </div>
+            </div>
+            
+            <!-- Status Check -->
+            <div>
+                <div class="flex items-center space-x-3 mb-4">
+                    <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">GET</span>
+                    <code class="text-gray-800 font-mono">/api/v1/status/</code>
+                </div>
+                
+                <p class="text-gray-600 mb-4">检查 API 服务状态</p>
+                
+                <div class="bg-gray-900 rounded-xl p-4 overflow-x-auto">
+                    <pre class="text-sm text-gray-300"><code># 请求示例
+curl "https://your-domain.com/api/v1/status/"</code></pre>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Response Format -->
+        <div class="mt-8 pt-8 border-t border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">响应格式</h3>
+            
+            <div class="bg-gray-900 rounded-xl p-4 overflow-x-auto">
+                <pre class="text-sm text-gray-300"><code># 成功响应
+{
+  "success": true,
+  "message": "News article pushed successfully",
+  "data": {
+    "id": 123,
+    "title": "新闻标题",
+    "created": true,
+    "published_at": "2024-01-15T10:30:00+00:00"
+  }
+}
+
+# 错误响应
+{
+  "error": "Missing API key",
+  "code": 401
+}</code></pre>
+            </div>
+        </div>
+        
+        <!-- Error Codes -->
+        <div class="mt-8 pt-8 border-t border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">错误码</h3>
+            
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-gray-600">状态码</th>
+                        <th class="px-4 py-2 text-left text-gray-600">说明</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr>
+                        <td class="px-4 py-2 font-mono text-gray-800">200</td>
+                        <td class="px-4 py-2 text-gray-600">请求成功</td>
+                    </tr>
+                    <tr>
+                        <td class="px-4 py-2 font-mono text-gray-800">400</td>
+                        <td class="px-4 py-2 text-gray-600">请求参数错误</td>
+                    </tr>
+                    <tr>
+                        <td class="px-4 py-2 font-mono text-gray-800">401</td>
+                        <td class="px-4 py-2 text-gray-600">缺少 API 密钥</td>
+                    </tr>
+                    <tr>
+                        <td class="px-4 py-2 font-mono text-gray-800">403</td>
+                        <td class="px-4 py-2 text-gray-600">API 密钥无效</td>
+                    </tr>
+                    <tr>
+                        <td class="px-4 py-2 font-mono text-gray-800">404</td>
+                        <td class="px-4 py-2 text-gray-600">用户不存在</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function getApiKey() {
+    fetch('/api/v1/key/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('apiKey').textContent = data.data.api_key;
+            } else {
+                alert('获取密钥失败：' + (data.error || '未知错误'));
+            }
+        })
+        .catch(error => {
+            alert('请求失败：' + error.message);
+        });
+}
+
+function copyApiKey() {
+    const apiKey = document.getElementById('apiKey').textContent;
+    if (apiKey && apiKey !== '点击获取密钥') {
+        navigator.clipboard.writeText(apiKey).then(() => {
+            alert('已复制到剪贴板');
+        });
+    } else {
+        alert('请先获取 API 密钥');
+    }
+}
+</script>
+{% endblock %}

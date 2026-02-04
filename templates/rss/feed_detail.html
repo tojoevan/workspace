@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ feed.title }} - RSS 订阅 - 信息阅读工作台{% endblock %}
+{% block page_title %}{{ feed.title }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'rss:feed_list' %}" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-arrow-left"></i> 返回列表
+            </a>
+        </div>
+        <div class="flex items-center space-x-3">
+            <a href="{% url 'rss:feed_refresh' feed.id %}" class="px-4 py-2 bg-orange-100 text-orange-700 rounded-xl hover:bg-orange-200 transition-colors">
+                <i class="fas fa-sync-alt mr-2"></i>刷新
+            </a>
+            <a href="{% url 'rss:feed_edit' feed.id %}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
+                <i class="fas fa-edit mr-2"></i>编辑
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Feed Info -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+    <div class="flex items-start space-x-4">
+        <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl">
+            {{ feed.title|first|upper }}
+        </div>
+        <div class="flex-1">
+            <h2 class="text-xl font-bold text-gray-800">{{ feed.title }}</h2>
+            <p class="text-gray-500 mt-1">{{ feed.description|default:'暂无描述' }}</p>
+            <div class="flex items-center space-x-4 mt-3 text-sm text-gray-500">
+                <span><i class="fas fa-link mr-1"></i>{{ feed.url|truncatechars:50 }}</span>
+                <span><i class="far fa-clock mr-1"></i>更新于 {{ feed.last_fetched|default:'未更新'|timesince }}</span>
+                <span class="{% if feed.is_active %}text-green-600{% else %}text-gray-400{% endif %}">
+                    <i class="fas fa-circle text-xs mr-1"></i>{{ feed.is_active|yesno:'运行中,已暂停' }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center space-x-4">
+        <select id="filterSelect" onchange="applyFilter()" class="px-4 py-2 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none bg-white">
+            <option value="all" {% if filter_type == 'all' %}selected{% endif %}>全部文章</option>
+            <option value="unread" {% if filter_type == 'unread' %}selected{% endif %}>未读</option>
+            <option value="starred" {% if filter_type == 'starred' %}selected{% endif %}>收藏</option>
+        </select>
+    </div>
+    <p class="text-gray-500">共 {{ articles|length }} 篇文章</p>
+</div>
+
+<!-- Articles List -->
+{% if articles %}
+<div class="space-y-4">
+    {% for article in articles %}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow p-6">
+        <div class="flex items-start space-x-4">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center space-x-2 mb-2">
+                    <span class="text-xs text-gray-400">{{ article.published_at|timesince }}前</span>
+                    {% if not article.is_read %}
+                    <span class="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full">未读</span>
+                    {% endif %}
+                    {% if article.is_starred %}
+                    <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full"><i class="fas fa-star mr-1"></i>收藏</span>
+                    {% endif %}
+                </div>
+                
+                <h3 class="font-semibold text-gray-800 mb-2 hover:text-orange-600 transition-colors">
+                    <a href="{% url 'rss:article_detail' article.id %}">{{ article.title }}</a>
+                </h3>
+                
+                <p class="text-sm text-gray-600 line-clamp-2 mb-3">{{ article.description|striptags|truncatewords:50 }}</p>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                        {% if article.author %}
+                        <span><i class="far fa-user mr-1"></i>{{ article.author }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <button onclick="toggleStar({{ article.id }})" class="p-2 rounded-lg hover:bg-gray-100 transition-colors {% if article.is_starred %}text-yellow-500{% else %}text-gray-400{% endif %}">
+                            <i class="fas fa-star"></i>
+                        </button>
+                        <a href="{% url 'notes:quick_note' %}?type=rss&id={{ article.id }}" class="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-green-600" title="创建笔记">
+                            <i class="fas fa-sticky-note"></i>
+                        </a>
+                        <a href="{{ article.link }}" target="_blank" class="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-orange-600" title="阅读原文">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+    <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i class="fas fa-rss text-orange-500 text-3xl"></i>
+    </div>
+    <h3 class="text-xl font-semibold text-gray-800 mb-2">还没有文章</h3>
+    <p class="text-gray-500 mb-6">点击刷新按钮获取最新文章</p>
+    <a href="{% url 'rss:feed_refresh' feed.id %}" class="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors">
+        <i class="fas fa-sync-alt mr-2"></i>立即刷新
+    </a>
+</div>
+{% endif %}
+
+<script>
+function applyFilter() {
+    const filter = document.getElementById('filterSelect').value;
+    window.location.href = '?filter=' + filter;
+}
+
+function toggleStar(id) {
+    fetch(`/rss/articles/${id}/star/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

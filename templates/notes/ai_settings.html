@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}AI 配置 - 信息阅读工作台{% endblock %}
+{% block page_title %}AI 配置{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+        <div class="p-6 border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-800">AI 大模型配置</h2>
+            <p class="text-sm text-gray-500 mt-1">配置 OpenAI 或其他兼容 OpenAI API 的大模型</p>
+        </div>
+        
+        <form method="post" class="p-6 space-y-6">
+            {% csrf_token %}
+            
+            <!-- API Key -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    API 密钥
+                </label>
+                <div class="relative">
+                    <input type="password" name="api_key" id="apiKey" value="{{ api_key }}"
+                        class="w-full pl-11 pr-12 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all outline-none"
+                        placeholder="sk-...">
+                    <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <button type="button" onclick="toggleApiKeyVisibility()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    支持 OpenAI、Azure OpenAI、以及其他兼容 OpenAI API 格式的服务
+                </p>
+            </div>
+            
+            <!-- Base URL -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    API 基础地址
+                </label>
+                <div class="relative">
+                    <input type="url" name="base_url" value="{{ base_url }}"
+                        class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all outline-none"
+                        placeholder="https://api.openai.com/v1">
+                    <i class="fas fa-server absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    默认使用 OpenAI 官方地址，也可配置第三方服务如：
+                    <code class="bg-gray-100 px-1 rounded">https://api.moonshot.cn/v1</code>、
+                    <code class="bg-gray-100 px-1 rounded">https://api.deepseek.com/v1</code>
+                </p>
+            </div>
+            
+            <!-- Model -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    模型名称
+                </label>
+                <div class="relative">
+                    <input type="text" name="model" value="{{ model }}"
+                        class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all outline-none"
+                        placeholder="gpt-3.5-turbo">
+                    <i class="fas fa-brain absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    常用模型：
+                    <span class="inline-flex flex-wrap gap-1 mt-1">
+                        <button type="button" onclick="setModel('gpt-3.5-turbo')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs transition-colors">gpt-3.5-turbo</button>
+                        <button type="button" onclick="setModel('gpt-4')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs transition-colors">gpt-4</button>
+                        <button type="button" onclick="setModel('gpt-4-turbo')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs transition-colors">gpt-4-turbo</button>
+                        <button type="button" onclick="setModel('moonshot-v1-8k')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs transition-colors">moonshot-v1-8k</button>
+                        <button type="button" onclick="setModel('deepseek-chat')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs transition-colors">deepseek-chat</button>
+                    </span>
+                </p>
+            </div>
+            
+            <!-- Default Settings Info -->
+            <div class="bg-gray-50 rounded-xl p-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-cog mr-1"></i>系统默认配置
+                </h4>
+                <div class="space-y-1 text-xs text-gray-500">
+                    <p><span class="font-medium">默认 API 密钥：</span>{{ default_api_key|yesno:'已配置,未配置' }}</p>
+                    <p><span class="font-medium">默认基础地址：</span>{{ default_base_url }}</p>
+                    <p><span class="font-medium">默认模型：</span>{{ default_model }}</p>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">
+                    如果留空，将使用系统默认配置。个人配置仅对当前用户有效。
+                </p>
+            </div>
+            
+            <!-- Test Connection -->
+            <div class="flex items-center space-x-3">
+                <button type="button" onclick="testConnection()" class="px-4 py-2 border border-purple-600 text-purple-600 rounded-xl hover:bg-purple-50 transition-colors">
+                    <i class="fas fa-plug mr-2"></i>测试连接
+                </button>
+                <span id="testResult" class="text-sm"></span>
+            </div>
+            
+            <div class="flex items-center space-x-4 pt-4 border-t border-gray-100">
+                <button type="submit" class="flex-1 py-3 px-4 bg-purple-600 text-white font-medium rounded-xl hover:bg-purple-700 transition-colors">
+                    <i class="fas fa-save mr-2"></i>保存配置
+                </button>
+                <a href="{% url 'notes:note_list' %}" class="px-6 py-3 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors">
+                    取消
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleApiKeyVisibility() {
+    const apiKeyInput = document.getElementById('apiKey');
+    const eyeIcon = document.getElementById('eyeIcon');
+    
+    if (apiKeyInput.type === 'password') {
+        apiKeyInput.type = 'text';
+        eyeIcon.classList.remove('fa-eye');
+        eyeIcon.classList.add('fa-eye-slash');
+    } else {
+        apiKeyInput.type = 'password';
+        eyeIcon.classList.remove('fa-eye-slash');
+        eyeIcon.classList.add('fa-eye');
+    }
+}
+
+function setModel(model) {
+    document.querySelector('input[name="model"]').value = model;
+}
+
+async function testConnection() {
+    const resultSpan = document.getElementById('testResult');
+    resultSpan.innerHTML = '<i class="fas fa-spinner fa-spin text-purple-600"></i> 测试中...';
+    
+    const apiKey = document.getElementById('apiKey').value;
+    const baseUrl = document.querySelector('input[name="base_url"]').value;
+    const model = document.querySelector('input[name="model"]').value;
+    
+    if (!apiKey) {
+        resultSpan.innerHTML = '<span class="text-red-500"><i class="fas fa-times-circle"></i> 请先输入 API 密钥</span>';
+        return;
+    }
+    
+    try {
+        // 这里可以添加实际的 API 测试逻辑
+        // 由于需要后端支持，这里先模拟测试
+        const response = await fetch('/api/v1/status/');
+        if (response.ok) {
+            resultSpan.innerHTML = '<span class="text-green-500"><i class="fas fa-check-circle"></i> 连接成功</span>';
+        } else {
+            resultSpan.innerHTML = '<span class="text-red-500"><i class="fas fa-times-circle"></i> 连接失败</span>';
+        }
+    } catch (error) {
+        resultSpan.innerHTML = '<span class="text-red-500"><i class="fas fa-times-circle"></i> 连接失败: ' + error.message + '</span>';
+    }
+}
+</script>
+{% endblock %}

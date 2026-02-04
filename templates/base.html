@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}信息阅读工作台{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300" id="sidebar">
+            <!-- Logo -->
+            <div class="p-6 border-b border-gray-100">
+                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/30">
+                        <i class="fas fa-book-reader text-white text-lg"></i>
+                    </div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">阅读工作台</span>
+                </a>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
+                <a href="{% url 'dashboard' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <i class="fas fa-home w-5"></i>
+                    <span class="font-medium">仪表盘</span>
+                </a>
+                
+                <a href="{% url 'rss:feed_list' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.namespace == 'rss' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <i class="fas fa-rss w-5"></i>
+                    <span class="font-medium">RSS 订阅</span>
+                </a>
+                
+                <a href="{% url 'news:article_list' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.namespace == 'news' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <i class="fas fa-newspaper w-5"></i>
+                    <span class="font-medium">新闻资讯</span>
+                </a>
+                
+                <a href="{% url 'notes:note_list' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.namespace == 'notes' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <i class="fas fa-sticky-note w-5"></i>
+                    <span class="font-medium">笔记</span>
+                </a>
+                
+                <div class="pt-4 mt-4 border-t border-gray-100">
+                    <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">快捷操作</p>
+                    
+                    <button onclick="openQuickAddModal()" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200">
+                        <i class="fas fa-plus-circle w-5"></i>
+                        <span class="font-medium">快速添加</span>
+                    </button>
+                    
+                    <button onclick="toggleAIAssistant()" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200">
+                        <i class="fas fa-robot w-5"></i>
+                        <span class="font-medium">AI 助手</span>
+                    </button>
+                    
+                    <a href="{% url 'notes:ai_settings' %}" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200">
+                        <i class="fas fa-brain w-5"></i>
+                        <span class="font-medium">AI 配置</span>
+                    </a>
+                    
+                    <a href="{% url 'api_docs' %}" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200">
+                        <i class="fas fa-code w-5"></i>
+                        <span class="font-medium">API 文档</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <!-- User Profile -->
+            <div class="p-4 border-t border-gray-100">
+                <div class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-gray-50">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold">
+                        {{ request.user.username|first|upper }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ request.user.username }}</p>
+                        <p class="text-xs text-gray-500 truncate">{{ request.user.email }}</p>
+                    </div>
+                    <a href="{% url 'logout' %}" class="text-gray-400 hover:text-red-500 transition-colors">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-gray-100 transition-colors lg:hidden">
+                        <i class="fas fa-bars text-gray-600"></i>
+                    </button>
+                    <h1 class="text-xl font-semibold text-gray-800">{% block page_title %}仪表盘{% endblock %}</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Search -->
+                    <div class="relative hidden md:block">
+                        <input type="text" placeholder="搜索..." class="w-64 pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none text-sm">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <button class="relative p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-bell text-gray-600"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto scrollbar-thin p-6">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <!-- AI Assistant Panel -->
+    <div id="aiAssistantPanel" class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-primary-50 to-white">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-robot text-white"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800">AI 助手</h3>
+                    <p class="text-xs text-gray-500">智能写作助手</p>
+                </div>
+            </div>
+            <button onclick="toggleAIAssistant()" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <i class="fas fa-times text-gray-600"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-4 space-y-4" id="aiChatContainer">
+            <div class="bg-primary-50 rounded-xl p-4">
+                <p class="text-sm text-gray-700">你好！我是你的 AI 写作助手。我可以帮你：</p>
+                <ul class="mt-2 text-sm text-gray-600 space-y-1">
+                    <li><i class="fas fa-check text-primary-500 mr-2"></i>总结文章要点</li>
+                    <li><i class="fas fa-check text-primary-500 mr-2"></i>改写和润色内容</li>
+                    <li><i class="fas fa-check text-primary-500 mr-2"></i>生成笔记和摘要</li>
+                    <li><i class="fas fa-check text-primary-500 mr-2"></i>翻译内容</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="p-4 border-t border-gray-200">
+            <div class="flex space-x-2">
+                <input type="text" id="aiInput" placeholder="输入你的需求..." class="flex-1 px-4 py-2 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none text-sm">
+                <button onclick="sendAIMessage()" class="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Add Modal -->
+    <div id="quickAddModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 transform scale-95 opacity-0 transition-all duration-300" id="quickAddContent">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800">快速添加</h3>
+                    <button onclick="closeQuickAddModal()" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-times text-gray-600"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-3">
+                    <button onclick="showAddRSSForm()" class="w-full flex items-center space-x-4 p-4 rounded-xl border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all group">
+                        <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                            <i class="fas fa-rss text-orange-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="font-medium text-gray-800">添加 RSS 订阅</p>
+                            <p class="text-sm text-gray-500">订阅新的 RSS 源</p>
+                        </div>
+                    </button>
+                    
+                    <button onclick="showAddNewsSourceForm()" class="w-full flex items-center space-x-4 p-4 rounded-xl border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all group">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                            <i class="fas fa-newspaper text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="font-medium text-gray-800">添加新闻来源</p>
+                            <p class="text-sm text-gray-500">配置 API 新闻源</p>
+                        </div>
+                    </button>
+                    
+                    <button onclick="showAddNoteForm()" class="w-full flex items-center space-x-4 p-4 rounded-xl border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all group">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                            <i class="fas fa-sticky-note text-green-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="font-medium text-gray-800">新建笔记</p>
+                            <p class="text-sm text-gray-500">创建新的笔记</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Toggle Sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+        
+        // AI Assistant Panel
+        function toggleAIAssistant() {
+            const panel = document.getElementById('aiAssistantPanel');
+            panel.classList.toggle('translate-x-full');
+        }
+        
+        // Quick Add Modal
+        function openQuickAddModal() {
+            const modal = document.getElementById('quickAddModal');
+            const content = document.getElementById('quickAddContent');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+        
+        function closeQuickAddModal() {
+            const modal = document.getElementById('quickAddModal');
+            const content = document.getElementById('quickAddContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+        
+        function showAddRSSForm() {
+            window.location.href = '{% url "rss:feed_add" %}';
+        }
+        
+        function showAddNewsSourceForm() {
+            window.location.href = '{% url "news:source_add" %}';
+        }
+        
+        function showAddNoteForm() {
+            window.location.href = '{% url "notes:note_add" %}';
+        }
+        
+        // AI Chat
+        function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const container = document.getElementById('aiChatContainer');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'flex justify-end';
+            userMsg.innerHTML = `
+                <div class="bg-primary-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 max-w-[80%]">
+                    <p class="text-sm">${message}</p>
+                </div>
+            `;
+            container.appendChild(userMsg);
+            
+            input.value = '';
+            container.scrollTop = container.scrollHeight;
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'flex justify-start';
+                aiMsg.innerHTML = `
+                    <div class="bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                        <p class="text-sm">我正在处理你的请求，请稍候...</p>
+                    </div>
+                `;
+                container.appendChild(aiMsg);
+                container.scrollTop = container.scrollHeight;
+            }, 500);
+        }
+        
+        // Enter key for AI input
+        document.getElementById('aiInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendAIMessage();
+        });
+        
+        // Close modal on backdrop click
+        document.getElementById('quickAddModal')?.addEventListener('click', function(e) {
+            if (e.target === this) closeQuickAddModal();
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

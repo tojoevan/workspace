@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}添加新闻来源 - 信息阅读工作台{% endblock %}
+{% block page_title %}添加新闻来源{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+        <div class="p-6 border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-800">添加新闻来源</h2>
+            <p class="text-sm text-gray-500 mt-1">配置 API 新闻源，自动获取最新资讯</p>
+        </div>
+        
+        <form method="post" class="p-6 space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    来源名称 <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="name" required 
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none"
+                    placeholder="如：TechCrunch、BBC News">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">来源类型</label>
+                <div class="flex space-x-4">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="radio" name="source_type" value="api" checked class="text-blue-600 focus:ring-blue-500">
+                        <span>API</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="radio" name="source_type" value="manual" class="text-blue-600 focus:ring-blue-500">
+                        <span>手动</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    API 地址
+                </label>
+                <div class="relative">
+                    <input type="url" name="api_url" 
+                        class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none"
+                        placeholder="https://newsapi.org/v2/top-headlines...">
+                    <i class="fas fa-link absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    支持 NewsAPI、自定义 API 等
+                </p>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    API 密钥
+                </label>
+                <div class="relative">
+                    <input type="password" name="api_key" 
+                        class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none"
+                        placeholder="可选，用于需要认证的 API">
+                    <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+            
+            <!-- Example APIs -->
+            <div class="bg-gray-50 rounded-xl p-4">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">示例 API</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg">
+                        <span>NewsAPI</span>
+                        <a href="https://newsapi.org/" target="_blank" class="text-blue-600 hover:text-blue-700">获取密钥 <i class="fas fa-external-link-alt text-xs"></i></a>
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg">
+                        <span>GNews</span>
+                        <a href="https://gnews.io/" target="_blank" class="text-blue-600 hover:text-blue-700">获取密钥 <i class="fas fa-external-link-alt text-xs"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4 pt-4">
+                <button type="submit" class="flex-1 py-3 px-4 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>添加来源
+                </button>
+                <a href="{% url 'news:source_list' %}" class="px-6 py-3 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors">
+                    取消
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
