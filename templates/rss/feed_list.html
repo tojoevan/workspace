@@ -39,7 +39,7 @@
                 {% endif %}
             </div>
             
-            <p class="text-sm text-gray-600 line-clamp-2 mb-4">{{ feed.description|default:'暂无描述' }}</p>
+            <p class="text-sm text-gray-600 line-clamp-1 mb-4" title="{{ feed.description }}">{{ feed.description|default:'暂无描述' }}</p>
             
             <div class="flex items-center justify-between text-xs text-gray-400 mb-4">
                 <span><i class="far fa-clock mr-1"></i>{{ feed.last_fetched|timesince|default:'未更新' }}</span>
