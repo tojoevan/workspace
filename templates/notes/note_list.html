@@ -41,16 +41,15 @@
     {% for note in notes %}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
         <div class="p-6">
-            <div class="flex items-start justify-between mb-3">
-                <div class="flex items-center space-x-2">
-                    {% if note.is_pinned %}
-                    <i class="fas fa-thumbtack text-primary-500"></i>
-                    {% endif %}
-                    {% if note.note_type == 'ai' %}
-                    <i class="fas fa-robot text-purple-500"></i>
-                    {% endif %}
-                </div>
-                <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div class="flex items-center justify-between mb-3 gap-2">
+                <h3 class="font-semibold text-gray-800 line-clamp-1 flex-1 min-w-0">
+                    <a href="{% url 'notes:note_detail' note.id %}" class="hover:text-green-600 transition-colors">
+                        {% if note.is_pinned %}<i class="fas fa-thumbtack text-primary-500 mr-1"></i>{% endif %}
+                        {% if note.note_type == 'ai' %}<i class="fas fa-robot text-purple-500 mr-1"></i>{% endif %}
+                        {{ note.title }}
+                    </a>
+                </h3>
+                <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     <button onclick="togglePin({{ note.id }})" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-primary-500">
                         <i class="fas fa-thumbtack"></i>
                     </button>
@@ -62,10 +61,6 @@
                     </button>
                 </div>
             </div>
-            
-            <h3 class="font-semibold text-gray-800 mb-2 line-clamp-1">
-                <a href="{% url 'notes:note_detail' note.id %}" class="hover:text-green-600 transition-colors">{{ note.title }}</a>
-            </h3>
             
             <p class="text-sm text-gray-600 line-clamp-3 mb-4">{{ note.content|striptags|truncatewords:50 }}</p>
             
@@ -95,6 +90,21 @@
 {% endif %}
 
 <script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 function applyFilter() {
     const filter = document.getElementById('filterSelect').value;
     const tag = document.getElementById('tagSelect')?.value || '';
@@ -114,7 +124,7 @@ function togglePin(id) {
     fetch(`/notes/${id}/pin/`, {
         method: 'POST',
         headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
+            'X-CSRFToken': getCookie('csrftoken'),
         },
     })
     .then(response => response.json())
@@ -129,7 +139,7 @@ function toggleArchive(id) {
     fetch(`/notes/${id}/archive/`, {
         method: 'POST',
         headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
+            'X-CSRFToken': getCookie('csrftoken'),
         },
     })
     .then(response => response.json())
