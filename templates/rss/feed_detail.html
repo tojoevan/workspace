@@ -18,6 +18,9 @@
             <a href="{% url 'rss:feed_edit' feed.id %}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
                 <i class="fas fa-edit mr-2"></i>编辑
             </a>
+            <a href="{% url 'rss:feed_delete' feed.id %}" class="px-4 py-2 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-colors">
+                <i class="fas fa-trash mr-2"></i>删除
+            </a>
         </div>
     </div>
 </div>

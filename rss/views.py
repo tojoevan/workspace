@@ -254,8 +254,7 @@ def fetch_feed_articles(feed, feed_data):
         # 获取发布时间 - 支持多种格式
         published_at = None
         # print(entry.title)
-        print(entry.published_parsed)
-        
+
         # 尝试不同的发布时间字段
         if hasattr(entry, 'published_parsed') and entry.published_parsed:
             try:
