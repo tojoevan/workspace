@@ -248,8 +248,10 @@ def fetch_feed_articles(feed, feed_data):
     """获取订阅源文章"""
     from django.utils.dateparse import parse_datetime
     import time
-    from datetime import datetime
-    
+    from datetime import datetime, timezone as dt_timezone
+
+    print(f"Processing {len(feed_data.entries[:50])} entries for feed: {feed.title}")
+
     for entry in feed_data.entries[:50]:  # 最多获取 50 篇
         # 获取发布时间 - 支持多种格式
         published_at = None
@@ -258,13 +260,13 @@ def fetch_feed_articles(feed, feed_data):
         # 尝试不同的发布时间字段
         if hasattr(entry, 'published_parsed') and entry.published_parsed:
             try:
-                published_at = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                published_at = datetime(*entry.published_parsed[:6], tzinfo=dt_timezone.utc)
             except (ValueError, TypeError):
                 pass
 
         if not published_at and hasattr(entry, 'updated_parsed') and entry.updated_parsed:
             try:
-                published_at = datetime(*entry.updated_parsed[:6], tzinfo=timezone.utc)
+                published_at = datetime(*entry.updated_parsed[:6], tzinfo=dt_timezone.utc)
             except (ValueError, TypeError):
                 pass
         
@@ -354,7 +356,7 @@ def fetch_feed_articles(feed, feed_data):
         
         # 创建或更新文章
         if link:  # 只有有链接才创建
-            RSSArticle.objects.get_or_create(
+            article, created = RSSArticle.objects.get_or_create(
                 feed=feed,
                 link=link[:2000],
                 defaults={
@@ -365,7 +367,10 @@ def fetch_feed_articles(feed, feed_data):
                     'published_at': published_at,
                 }
             )
-            # print(entry.title, published_at)
+            if created:
+                print(f"Created article: {title[:50]}")
+        else:
+            print(f"Skipped article (no link): {title[:50]}")
 
 
 # 导入 models
