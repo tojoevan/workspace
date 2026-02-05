@@ -146,17 +146,20 @@ def note_toggle_archive(request, pk):
 @login_required
 def ai_write(request, pk):
     """AI 写作助手"""
+    from .models import UserProfile
+
     note = get_object_or_404(Note, pk=pk, user=request.user)
-    
+
     # 获取提示词模板
     prompts = AIWritingPrompt.objects.filter(
         models.Q(user=request.user) | models.Q(is_default=True)
     ).order_by('-is_default', '-created_at')
-    
-    # 获取用户配置的 AI 设置
-    api_key = request.session.get('openai_api_key', settings.OPENAI_API_KEY)
-    base_url = request.session.get('openai_base_url', settings.OPENAI_BASE_URL)
-    model = request.session.get('openai_model', settings.OPENAI_MODEL)
+
+    # 获取用户配置
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    api_key = profile.openai_api_key or settings.OPENAI_API_KEY
+    base_url = profile.openai_base_url or settings.OPENAI_BASE_URL
+    model = profile.openai_model or settings.OPENAI_MODEL
     
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -342,24 +345,25 @@ from news.models import NewsArticle
 @login_required
 def ai_settings(request):
     """AI 配置页面"""
-    if request.method == 'POST':
-        api_key = request.POST.get('api_key', '').strip()
-        base_url = request.POST.get('base_url', '').strip()
-        model = request.POST.get('model', '').strip()
+    from .models import UserProfile
 
-        # 保存到用户配置（这里使用 session 或可以创建 UserProfile 模型）
-        request.session['openai_api_key'] = api_key
-        request.session['openai_base_url'] = base_url
-        request.session['openai_model'] = model
+    # 获取或创建用户配置
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        profile.openai_api_key = request.POST.get('api_key', '').strip()
+        profile.openai_base_url = request.POST.get('base_url', '').strip()
+        profile.openai_model = request.POST.get('model', '').strip()
+        profile.save()
 
         messages.success(request, 'AI 配置已保存')
         return redirect('notes:ai_settings')
 
     # 获取当前配置
     context = {
-        'api_key': request.session.get('openai_api_key', settings.OPENAI_API_KEY),
-        'base_url': request.session.get('openai_base_url', settings.OPENAI_BASE_URL),
-        'model': request.session.get('openai_model', settings.OPENAI_MODEL),
+        'api_key': profile.openai_api_key or settings.OPENAI_API_KEY,
+        'base_url': profile.openai_base_url or settings.OPENAI_BASE_URL,
+        'model': profile.openai_model or settings.OPENAI_MODEL,
         'default_api_key': settings.OPENAI_API_KEY,
         'default_base_url': settings.OPENAI_BASE_URL,
         'default_model': settings.OPENAI_MODEL,
@@ -372,9 +376,12 @@ def ai_settings(request):
 @require_POST
 def ai_chat(request):
     """AI 聊天接口"""
-    api_key = request.session.get('openai_api_key', settings.OPENAI_API_KEY)
-    base_url = request.session.get('openai_base_url', settings.OPENAI_BASE_URL)
-    model = request.session.get('openai_model', settings.OPENAI_MODEL)
+    from .models import UserProfile
+
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    api_key = profile.openai_api_key or settings.OPENAI_API_KEY
+    base_url = profile.openai_base_url or settings.OPENAI_BASE_URL
+    model = profile.openai_model or settings.OPENAI_MODEL
 
     if not api_key:
         return JsonResponse({'success': False, 'error': '请先配置 AI 密钥'})
