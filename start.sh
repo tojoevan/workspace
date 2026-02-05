@@ -48,4 +48,4 @@ echo "按 Ctrl+C 停止服务器"
 echo ""
 
 # 启动服务器
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 127.0.0.1:8000

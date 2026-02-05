@@ -22,7 +22,8 @@ urlpatterns = [
     
     # AI Settings
     path('ai-settings/', views.ai_settings, name='ai_settings'),
-    
+    path('ai-chat/', views.ai_chat, name='ai_chat'),
+
     # Quick Note
     path('quick-note/', views.quick_note_from_article, name='quick_note'),
 ]

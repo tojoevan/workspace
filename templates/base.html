@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}信息阅读工作台{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -230,6 +231,7 @@
         
         <div class="p-4 border-t border-gray-200">
             <div class="flex space-x-2">
+                {% csrf_token %}
                 <input type="text" id="aiInput" placeholder="输入你的需求..." class="flex-1 px-4 py-2 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none text-sm">
                 <button onclick="sendAIMessage()" class="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors">
                     <i class="fas fa-paper-plane"></i>
@@ -285,6 +287,8 @@
     </div>
     
     <script>
+        const CSRF_TOKEN = '{{ csrf_token }}';
+
         // Toggle Sidebar
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -333,13 +337,13 @@
         }
         
         // AI Chat
-        function sendAIMessage() {
+        async function sendAIMessage() {
             const input = document.getElementById('aiInput');
             const container = document.getElementById('aiChatContainer');
             const message = input.value.trim();
-            
+
             if (!message) return;
-            
+
             // Add user message
             const userMsg = document.createElement('div');
             userMsg.className = 'flex justify-end';
@@ -349,22 +353,60 @@
                 </div>
             `;
             container.appendChild(userMsg);
-            
+
             input.value = '';
             container.scrollTop = container.scrollHeight;
-            
-            // Simulate AI response
-            setTimeout(() => {
+
+            // Show loading message
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = 'flex justify-start';
+            loadingMsg.innerHTML = `
+                <div class="bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                    <p class="text-sm">正在思考...</p>
+                </div>
+            `;
+            container.appendChild(loadingMsg);
+            container.scrollTop = container.scrollHeight;
+
+            try {
+                const response = await fetch('{% url "notes:ai_chat" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': CSRF_TOKEN
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error(`服务器返回非JSON响应 (${response.status})`);
+                }
+
+                const data = await response.json();
+                container.removeChild(loadingMsg);
+
                 const aiMsg = document.createElement('div');
                 aiMsg.className = 'flex justify-start';
                 aiMsg.innerHTML = `
                     <div class="bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
-                        <p class="text-sm">我正在处理你的请求，请稍候...</p>
+                        <p class="text-sm">${data.success ? data.response : '错误: ' + data.error}</p>
                     </div>
                 `;
                 container.appendChild(aiMsg);
                 container.scrollTop = container.scrollHeight;
-            }, 500);
+            } catch (error) {
+                container.removeChild(loadingMsg);
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'flex justify-start';
+                errorMsg.innerHTML = `
+                    <div class="bg-red-100 text-red-800 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                        <p class="text-sm">请求失败: ${error.message}</p>
+                    </div>
+                `;
+                container.appendChild(errorMsg);
+                container.scrollTop = container.scrollHeight;
+            }
         }
         
         // Enter key for AI input

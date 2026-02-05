@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.db.models import Count, Q
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rss.models import RSSFeed, RSSArticle
 from news.models import NewsArticle
 from notes.models import Note
@@ -34,6 +35,7 @@ def logout_view(request):
 
 
 @login_required
+@ensure_csrf_cookie
 def dashboard(request):
     """仪表盘"""
     # 统计数据

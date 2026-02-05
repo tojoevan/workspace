@@ -4,11 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.conf import settings
 from .models import Note, AIWritingPrompt, AIWritingHistory
 
 
 @login_required
+@ensure_csrf_cookie
 def note_list(request):
     """笔记列表"""
     notes = Note.objects.filter(user=request.user)
@@ -344,15 +346,15 @@ def ai_settings(request):
         api_key = request.POST.get('api_key', '').strip()
         base_url = request.POST.get('base_url', '').strip()
         model = request.POST.get('model', '').strip()
-        
+
         # 保存到用户配置（这里使用 session 或可以创建 UserProfile 模型）
         request.session['openai_api_key'] = api_key
         request.session['openai_base_url'] = base_url
         request.session['openai_model'] = model
-        
+
         messages.success(request, 'AI 配置已保存')
         return redirect('notes:ai_settings')
-    
+
     # 获取当前配置
     context = {
         'api_key': request.session.get('openai_api_key', settings.OPENAI_API_KEY),
@@ -363,3 +365,37 @@ def ai_settings(request):
         'default_model': settings.OPENAI_MODEL,
     }
     return render(request, 'notes/ai_settings.html', context)
+
+
+@login_required
+@csrf_exempt
+@require_POST
+def ai_chat(request):
+    """AI 聊天接口"""
+    api_key = request.session.get('openai_api_key', settings.OPENAI_API_KEY)
+    base_url = request.session.get('openai_base_url', settings.OPENAI_BASE_URL)
+    model = request.session.get('openai_model', settings.OPENAI_MODEL)
+
+    if not api_key:
+        return JsonResponse({'success': False, 'error': '请先配置 AI 密钥'})
+
+    try:
+        data = json.loads(request.body)
+        message = data.get('message', '').strip()
+
+        if not message:
+            return JsonResponse({'success': False, 'error': '消息不能为空'})
+
+        import openai
+        client = openai.OpenAI(api_key=api_key, base_url=base_url if base_url else None)
+
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": message}],
+            max_tokens=1000,
+            temperature=0.7,
+        )
+
+        return JsonResponse({'success': True, 'response': response.choices[0].message.content})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

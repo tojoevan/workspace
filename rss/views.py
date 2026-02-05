@@ -149,6 +149,7 @@ def feed_refresh(request, pk):
     try:
         import feedparser
         feed_data = feedparser.parse(feed.url)
+        # print(feed_data)
         
         # 检查是否成功获取到数据
         if hasattr(feed_data, 'bozo_exception') and feed_data.bozo:
@@ -162,6 +163,7 @@ def feed_refresh(request, pk):
         
         # 获取更新的文章数量
         article_count = feed.articles.count()
+        print(article_count)
         messages.success(request, f'已更新 {feed.title}，共 {article_count} 篇文章')
     except Exception as e:
         messages.error(request, f'更新失败：{str(e)}')
@@ -251,17 +253,19 @@ def fetch_feed_articles(feed, feed_data):
     for entry in feed_data.entries[:50]:  # 最多获取 50 篇
         # 获取发布时间 - 支持多种格式
         published_at = None
+        # print(entry.title)
+        print(entry.published_parsed)
         
         # 尝试不同的发布时间字段
         if hasattr(entry, 'published_parsed') and entry.published_parsed:
             try:
-                published_at = timezone.make_aware(datetime(*entry.published_parsed[:6]))
+                published_at = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
             except (ValueError, TypeError):
                 pass
-        
+
         if not published_at and hasattr(entry, 'updated_parsed') and entry.updated_parsed:
             try:
-                published_at = timezone.make_aware(datetime(*entry.updated_parsed[:6]))
+                published_at = datetime(*entry.updated_parsed[:6], tzinfo=timezone.utc)
             except (ValueError, TypeError):
                 pass
         
@@ -362,6 +366,7 @@ def fetch_feed_articles(feed, feed_data):
                     'published_at': published_at,
                 }
             )
+            # print(entry.title, published_at)
 
 
 # 导入 models
