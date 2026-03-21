@@ -30,141 +30,167 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
-        
+
         body {
             font-family: 'Inter', 'Noto Sans SC', sans-serif;
         }
-        
+
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        
+
         .glass-effect {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
         }
-        
+
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+            50% { transform: translateY(-15px); }
         }
-        
+
         .float-animation {
             animation: float 6s ease-in-out infinite;
         }
-        
-        @keyframes pulse-ring {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            100% { transform: scale(1.2); opacity: 0; }
-        }
-        
-        .pulse-ring {
-            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
-<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4 lg:p-8">
     <!-- Background Elements -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl float-animation"></div>
-        <div class="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl float-animation" style="animation-delay: -3s;"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-20 left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl float-animation"></div>
+        <div class="absolute bottom-20 right-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl float-animation" style="animation-delay: -3s;"></div>
     </div>
-    
-    <!-- Login Card -->
-    <div class="relative w-full max-w-md">
-        <!-- Logo -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-2xl mb-4">
-                <i class="fas fa-book-reader text-4xl text-primary-600"></i>
+
+    <!-- Main Container -->
+    <div class="relative w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+        <!-- Left Side - Branding -->
+        <div class="text-center lg:text-left order-2 lg:order-1">
+            <!-- Logo & Title -->
+            <div class="mb-10">
+                <div class="inline-flex items-center gap-4 mb-4">
+                    <div class="w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center">
+                        <i class="fas fa-book-reader text-3xl text-primary-600"></i>
+                    </div>
+                    <div class="text-left">
+                        <h1 class="text-3xl lg:text-4xl font-bold text-white">工作台</h1>
+                        <p class="text-white/70">高效阅读 · 智能管理</p>
+                    </div>
+                </div>
             </div>
-            <h1 class="text-3xl font-bold text-white mb-2">工作台</h1>
-            <p class="text-white/80">高效阅读，智能管理</p>
-        </div>
-        
-        <!-- Form Card -->
-        <div class="glass-effect rounded-3xl shadow-2xl p-8">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">欢迎回来</h2>
-            
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="mb-4 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
-                        <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-2"></i>
-                        {{ message }}
+
+            <!-- Features Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 lg:gap-4">
+                <div class="feature-card rounded-2xl p-4 text-center">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-rss text-xl text-white"></i>
                     </div>
-                {% endfor %}
-            {% endif %}
-            
-            <form method="post" class="space-y-5">
-                {% csrf_token %}
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
-                    <div class="relative">
-                        <input type="text" name="username" required
-                            class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
-                            placeholder="用户名或别名">
-                        <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <p class="text-white font-medium">RSS 订阅</p>
+                    <p class="text-white/50 text-xs mt-1">智能聚合</p>
+                </div>
+                <div class="feature-card rounded-2xl p-4 text-center">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-newspaper text-xl text-white"></i>
                     </div>
+                    <p class="text-white font-medium">新闻聚合</p>
+                    <p class="text-white/50 text-xs mt-1">实时资讯</p>
                 </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
-                    <div class="relative">
-                        <input type="password" name="password" required 
-                            class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none"
-                            placeholder="请输入密码">
-                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <div class="feature-card rounded-2xl p-4 text-center">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-bookmark text-xl text-white"></i>
                     </div>
+                    <p class="text-white font-medium">网址导航</p>
+                    <p class="text-white/50 text-xs mt-1">快捷收藏</p>
                 </div>
-                
-                <div class="flex items-center justify-between text-sm">
-                    <label class="flex items-center text-gray-600">
-                        <input type="checkbox" class="mr-2 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                        记住我
-                    </label>
-                    <a href="#" class="text-primary-600 hover:text-primary-700 font-medium">忘记密码？</a>
+                <div class="feature-card rounded-2xl p-4 text-center">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-check-circle text-xl text-white"></i>
+                    </div>
+                    <p class="text-white font-medium">待办管理</p>
+                    <p class="text-white/50 text-xs mt-1">任务规划</p>
                 </div>
-                
-                <button type="submit"
-                    class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg shadow-purple-500/30">
-                    登录
-                </button>
-            </form>
-            
-            <div class="mt-6 text-center">
-                <p class="text-gray-600 text-sm">
-                    还没有账号？
-                    <a href="#" class="text-primary-600 hover:text-primary-700 font-medium">立即注册</a>
-                </p>
+                <div class="feature-card rounded-2xl p-4 text-center">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-sticky-note text-xl text-white"></i>
+                    </div>
+                    <p class="text-white font-medium">笔记写作</p>
+                    <p class="text-white/50 text-xs mt-1">知识沉淀</p>
+                </div>
+                <div class="feature-card rounded-2xl p-4 text-center">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-robot text-xl text-white"></i>
+                    </div>
+                    <p class="text-white font-medium">AI 助手</p>
+                    <p class="text-white/50 text-xs mt-1">智能写作</p>
+                </div>
             </div>
         </div>
-        
-        <!-- Features -->
-        <div class="mt-8 grid grid-cols-3 md:grid-cols-6 gap-4 text-center text-white/80 text-sm">
-            <div>
-                <i class="fas fa-rss text-2xl mb-2"></i>
-                <p>RSS 订阅</p>
-            </div>
-            <div>
-                <i class="fas fa-newspaper text-2xl mb-2"></i>
-                <p>新闻聚合</p>
-            </div>
-            <div>
-                <i class="fas fa-bookmark text-2xl mb-2"></i>
-                <p>网址导航</p>
-            </div>
-            <div>
-                <i class="fas fa-check-circle text-2xl mb-2"></i>
-                <p>待办管理</p>
-            </div>
-            <div>
-                <i class="fas fa-sticky-note text-2xl mb-2"></i>
-                <p>笔记写作</p>
-            </div>
-            <div>
-                <i class="fas fa-robot text-2xl mb-2"></i>
-                <p>AI 助手</p>
+
+        <!-- Right Side - Login Form -->
+        <div class="order-1 lg:order-2 flex justify-center">
+            <div class="w-full max-w-sm">
+                <div class="glass-effect rounded-3xl shadow-2xl p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2 text-center">欢迎回来</h2>
+                    <p class="text-gray-500 text-sm text-center mb-6">登录您的账户</p>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="mb-4 p-3 rounded-xl {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
+                                <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-2"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" class="space-y-4">
+                        {% csrf_token %}
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">用户名</label>
+                            <div class="relative">
+                                <input type="text" name="username" required
+                                    class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none text-sm"
+                                    placeholder="用户名或别名">
+                                <i class="fas fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">密码</label>
+                            <div class="relative">
+                                <input type="password" name="password" required
+                                    class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none text-sm"
+                                    placeholder="请输入密码">
+                                <i class="fas fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-sm">
+                            <label class="flex items-center text-gray-600">
+                                <input type="checkbox" class="mr-2 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                记住我
+                            </label>
+                            <a href="#" class="text-primary-600 hover:text-primary-700 font-medium">忘记密码？</a>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg shadow-purple-500/25">
+                            登录
+                        </button>
+                    </form>
+
+                    <div class="mt-5 text-center">
+                        <p class="text-gray-500 text-sm">
+                            还没有账号？
+                            <a href="#" class="text-primary-600 hover:text-primary-700 font-medium">立即注册</a>
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
