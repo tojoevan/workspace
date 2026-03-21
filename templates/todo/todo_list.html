@@ -8,13 +8,13 @@
     <!-- 操作栏 -->
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center space-x-3">
-            <select id="statusFilter" onchange="applyFilters()" class="px-4 py-2 rounded-lg border border-gray-200 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none">
+            <select id="statusFilter" onchange="applyFilters()" class="px-4 py-2 rounded-lg border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none">
                 <option value="all" {% if status_filter == 'all' %}selected{% endif %}>全部状态</option>
                 <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>待处理</option>
                 <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>进行中</option>
                 <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>已完成</option>
             </select>
-            <select id="priorityFilter" onchange="applyFilters()" class="px-4 py-2 rounded-lg border border-gray-200 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none">
+            <select id="priorityFilter" onchange="applyFilters()" class="px-4 py-2 rounded-lg border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none">
                 <option value="all" {% if priority_filter == 'all' %}selected{% endif %}>全部优先级</option>
                 <option value="high" {% if priority_filter == 'high' %}selected{% endif %}>高优先级</option>
                 <option value="medium" {% if priority_filter == 'medium' %}selected{% endif %}>中优先级</option>

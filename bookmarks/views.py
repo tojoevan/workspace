@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils import timezone
+from django.core.paginator import Paginator
 from .models import Bookmark, BookmarkCategory
 import json
 
@@ -37,12 +38,19 @@ def bookmark_public(request):
         pk__in=bookmarks.values_list('category_id', flat=True).distinct()
     )
 
+    # 分页
+    paginator = Paginator(bookmarks, 24)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'bookmarks': bookmarks,
+        'page_obj': page_obj,
+        'bookmarks': page_obj,
         'categories': categories,
         'selected_category': category_id,
         'search': search,
         'sort': sort,
+        'total_count': bookmarks.count(),
     }
     return render(request, 'bookmarks/bookmark_public.html', context)
 
@@ -72,12 +80,19 @@ def bookmark_list(request):
 
     categories = BookmarkCategory.objects.filter(user=request.user)
 
+    # 分页
+    paginator = Paginator(bookmarks, 24)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'bookmarks': bookmarks,
+        'page_obj': page_obj,
+        'bookmarks': page_obj,
         'categories': categories,
         'selected_category': category_id,
         'search': search,
         'sort': sort,
+        'total_count': bookmarks.count(),
     }
     return render(request, 'bookmarks/bookmark_list.html', context)
 
