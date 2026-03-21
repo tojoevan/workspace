@@ -169,36 +169,8 @@
                 {% endif %}
             </nav>
 
-            <!-- User Profile -->
-            <div class="p-4 border-t border-gray-100">
-                {% if user.is_authenticated %}
-                <a href="{% url 'user_profile' %}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-gray-50 hover:bg-primary-50 transition-colors group cursor-pointer">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold">
-                        {{ request.user.username|first|upper }}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900 truncate group-hover:text-primary-700 transition-colors">{{ request.user.username }}</p>
-                        <p class="text-xs text-gray-500 truncate">{{ request.user.email }}</p>
-                    </div>
-                    <div class="flex items-center space-x-1">
-                        <i class="fas fa-cog text-gray-400 group-hover:text-primary-600 transition-colors"></i>
-                        <span class="text-gray-400 hover:text-red-500 transition-colors" onclick="event.preventDefault(); event.stopPropagation(); window.location.href='{% url 'logout' %}'">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </span>
-                    </div>
-                </a>
-                {% else %}
-                <div class="px-4 py-3">
-                    <a href="{% url 'login' %}" class="flex items-center justify-center space-x-2 px-4 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors">
-                        <i class="fas fa-sign-in-alt"></i>
-                        <span class="font-medium">登录账户</span>
-                    </a>
-                </div>
-                {% endif %}
-            </div>
-
             <!-- Version -->
-            <div class="p-4 border-t border-gray-100">
+            <div class="p-4 border-t border-gray-100 mt-auto">
                 <p class="text-center text-xs text-gray-400">v1.0.20260321</p>
             </div>
         </aside>
@@ -223,12 +195,40 @@
                         <input type="text" placeholder="搜索..." class="w-64 pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none text-sm">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
-                    
+
                     <!-- Notifications -->
                     <button class="relative p-2 rounded-xl hover:bg-gray-100 transition-colors">
                         <i class="fas fa-bell text-gray-600"></i>
                         <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                     </button>
+
+                    <!-- User Profile -->
+                    {% if user.is_authenticated %}
+                    <div class="relative" id="userMenuContainer">
+                        <button onclick="toggleUserMenu()" class="flex items-center space-x-2 px-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-semibold">
+                                {{ request.user.username|first|upper }}
+                            </div>
+                            <span class="text-sm text-gray-700 hidden sm:block">{{ request.user.username }}</span>
+                            <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div id="userMenu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 hidden z-50">
+                            <a href="{% url 'user_profile' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-user-cog w-5 text-gray-400"></i>
+                                <span class="ml-2">个人设置</span>
+                            </a>
+                            <a href="{% url 'logout' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-sign-out-alt w-5 text-gray-400"></i>
+                                <span class="ml-2">退出登录</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors text-sm">
+                        <i class="fas fa-sign-in-alt mr-2"></i>登录
+                    </a>
+                    {% endif %}
                 </div>
             </header>
 
@@ -497,6 +497,21 @@
         // Close modal on backdrop click
         document.getElementById('quickAddModal')?.addEventListener('click', function(e) {
             if (e.target === this) closeQuickAddModal();
+        });
+
+        // User Menu Dropdown
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('userMenuContainer');
+            const menu = document.getElementById('userMenu');
+            if (container && menu && !container.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
         });
     </script>
     {% block extra_js %}{% endblock %}
