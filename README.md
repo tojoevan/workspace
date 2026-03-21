@@ -1,6 +1,6 @@
-# 信息阅读工作台
+# 信息工作台
 
-一个基于 Django + Tailwind CSS 构建的信息阅读工作台，支持 RSS 订阅、API 新闻导入和 AI 写作笔记功能。
+一个基于 Django + Tailwind CSS 构建的信息工作台，支持 RSS 订阅、API 新闻导入和 AI 写作笔记功能。
 
 ## 功能特性
 
