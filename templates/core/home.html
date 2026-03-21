@@ -5,20 +5,7 @@
 
 {% block content %}
 <div class="space-y-6">
-    {% if user.is_authenticated %}
-    <!-- 已登录：快速操作栏 -->
-    <div class="flex flex-wrap gap-3">
-        <button onclick="openQuickAddModal()" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
-            <i class="fas fa-plus mr-2"></i>快速添加
-        </button>
-        <a href="{% url 'todo:todo_add' %}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-            <i class="fas fa-check-circle mr-2 text-purple-600"></i>新建待办
-        </a>
-        <a href="{% url 'bookmarks:bookmark_add' %}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-            <i class="fas fa-bookmark mr-2 text-teal-600"></i>添加网址
-        </a>
-    </div>
-    {% else %}
+    {% if not user.is_authenticated %}
     <!-- 未登录：欢迎区域 -->
     <div class="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-8 text-white">
         <div class="max-w-2xl">
