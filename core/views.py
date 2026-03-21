@@ -63,7 +63,7 @@ def home(request):
     from bookmarks.models import Bookmark
     public_bookmarks = Bookmark.objects.filter(
         is_private=False
-    ).select_related('user').order_by('-is_pinned', '-created_at')[:15]
+    ).select_related('user').order_by('-is_pinned', '-created_at')[:8]
 
     # 如果用户已登录，额外获取其个人数据
     user_todos = []
