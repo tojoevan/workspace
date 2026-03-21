@@ -52,6 +52,13 @@ class NewsArticle(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def effective_image_url(self):
+        """返回有效的图片URL，过滤掉默认占位符"""
+        if self.image_url and 'example.com' not in self.image_url:
+            return self.image_url
+        return None
+
 
 class NewsCategory(models.Model):
     """新闻分类"""

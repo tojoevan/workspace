@@ -17,6 +17,7 @@ urlpatterns = [
     path('search/', core_views.search, name='search'),
     path('api-docs/', core_views.api_docs, name='api_docs'),
     path('user/profile/', core_views.user_profile, name='user_profile'),
+    path('user/check-alias/', core_views.check_alias, name='check_alias'),
 
     # Apps
     path('rss/', include('rss.urls')),

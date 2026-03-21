@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 class UserProfile(models.Model):
     """用户配置"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', verbose_name='用户')
+    alias = models.CharField(max_length=50, blank=True, unique=True, null=True, verbose_name='别名',
+                             help_text='可用于登录的唯一别名')
     openai_api_key = models.CharField(max_length=200, blank=True, verbose_name='OpenAI API 密钥')
     openai_base_url = models.CharField(max_length=200, blank=True, verbose_name='OpenAI 基础地址')
     openai_model = models.CharField(max_length=50, blank=True, verbose_name='OpenAI 模型')

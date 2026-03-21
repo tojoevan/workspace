@@ -5,27 +5,40 @@ from django.contrib import messages
 from django.db.models import Count, Q
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.models import User
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from rss.models import RSSFeed, RSSArticle
 from news.models import NewsArticle
-from notes.models import Note
+from notes.models import Note, UserProfile
 
 
 def login_view(request):
     """登录页面"""
     if request.user.is_authenticated:
         return redirect('dashboard')
-    
+
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+
+        # 首先尝试用用户名登录
         user = authenticate(request, username=username, password=password)
-        
+
+        # 如果用户名登录失败，尝试用别名查找用户
+        if user is None:
+            try:
+                profile = UserProfile.objects.get(alias=username)
+                user = authenticate(request, username=profile.user.username, password=password)
+            except UserProfile.DoesNotExist:
+                pass
+
         if user is not None:
             login(request, user)
             return redirect('dashboard')
         else:
-            messages.error(request, '用户名或密码错误')
-    
+            messages.error(request, '用户名/别名或密码错误')
+
     return render(request, 'core/login.html')
 
 
@@ -147,9 +160,26 @@ def user_profile(request):
         elif form_type == 'profile':
             # 个人信息修改
             email = request.POST.get('email')
+            alias = request.POST.get('alias', '').strip()
+
             if email:
                 request.user.email = email
                 request.user.save()
+
+            # 更新别名
+            profile, created = UserProfile.objects.get_or_create(user=request.user)
+            if alias:
+                # 检查别名是否已被其他用户使用
+                if UserProfile.objects.filter(alias=alias).exclude(user=request.user).exists():
+                    messages.error(request, '该别名已被其他用户使用！')
+                else:
+                    profile.alias = alias
+                    profile.save()
+                    messages.success(request, '个人信息更新成功！')
+                    return redirect('user_profile')
+            else:
+                profile.alias = None
+                profile.save()
                 messages.success(request, '个人信息更新成功！')
                 return redirect('user_profile')
 
@@ -163,9 +193,34 @@ def user_profile(request):
 
     password_form = PasswordChangeForm(request.user)
 
+    # 获取用户配置
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+
     context = {
         'stats': stats,
         'password_form': password_form,
+        'profile': profile,
     }
 
     return render(request, 'core/user_profile.html', context)
+
+
+@login_required
+@require_http_methods(["GET"])
+def check_alias(request):
+    """检查别名是否可用"""
+    alias = request.GET.get('alias', '').strip()
+
+    if not alias:
+        return JsonResponse({'available': False, 'message': '别名不能为空'})
+
+    if len(alias) < 2 or len(alias) > 50:
+        return JsonResponse({'available': False, 'message': '别名长度需要在2-50个字符之间'})
+
+    # 检查别名是否已被其他用户使用
+    exists = UserProfile.objects.filter(alias=alias).exclude(user=request.user).exists()
+
+    if exists:
+        return JsonResponse({'available': False, 'message': '该别名已被其他用户使用'})
+    else:
+        return JsonResponse({'available': True, 'message': '别名可用'})
