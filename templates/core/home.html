@@ -128,18 +128,10 @@
                     </h2>
                     <a href="{% url 'bookmarks:bookmark_list' %}" class="text-sm text-primary-600 hover:text-primary-700">管理</a>
                 </div>
-                <div class="p-2 max-h-48 overflow-y-auto">
+                <div class="p-3">
                     {% for bookmark in user_bookmarks %}
-                    <a href="{{ bookmark.url }}" target="_blank" onclick="recordVisit({{ bookmark.pk }})" class="flex items-center px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors group">
-                        <div class="w-7 h-7 bg-gray-100 rounded flex items-center justify-center mr-2 group-hover:bg-gray-200">
-                            <i class="fas fa-link text-gray-400 text-xs"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-medium text-gray-700 truncate">{{ bookmark.title }}</p>
-                        </div>
-                        {% if bookmark.is_private %}
-                        <i class="fas fa-lock text-gray-300 text-xs ml-1" title="隐私"></i>
-                        {% endif %}
+                    <a href="{{ bookmark.url }}" target="_blank" onclick="recordVisit({{ bookmark.pk }})" class="inline-block text-xs text-primary-600 hover:text-primary-700 underline underline-offset-2 mr-3 leading-relaxed">
+                        {{ bookmark.title }}{% if bookmark.is_private %}<i class="fas fa-lock text-gray-300 text-xs ml-0.5" title="隐私"></i>{% endif %}
                     </a>
                     {% empty %}
                     <div class="py-4 text-center text-gray-400">
