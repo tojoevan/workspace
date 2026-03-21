@@ -77,7 +77,7 @@ def home(request):
 
         user_bookmarks = Bookmark.objects.filter(
             user=request.user
-        ).order_by('-is_pinned', '-created_at')[:10]
+        ).order_by('-is_pinned', '-last_visited')[:10]
 
     context = {
         'recent_rss': recent_rss,

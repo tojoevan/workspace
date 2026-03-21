@@ -66,7 +66,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center">
-                        <a href="{{ bookmark.url }}" target="_blank" class="text-sm font-medium text-gray-800 hover:text-primary-600 truncate">
+                        <a href="{{ bookmark.url }}" target="_blank" onclick="recordVisit({{ bookmark.pk }})" class="text-sm font-medium text-gray-800 hover:text-primary-600 truncate">
                             {{ bookmark.title }}
                         </a>
                         {% if bookmark.is_pinned %}
@@ -79,15 +79,18 @@
                         {% endif %}
                     </div>
                     <p class="text-xs text-gray-400 truncate">{{ bookmark.url }}</p>
-                    <div class="flex items-center mt-1 text-xs text-gray-400 space-x-2">
+                    <div class="flex items-center mt-1 text-xs text-gray-400 space-x-2 flex-wrap">
                         {% if bookmark.category %}
                         <span class="px-1.5 py-0.5 rounded" style="background-color: {{ bookmark.category.color }}20; color: {{ bookmark.category.color }}">
                             {{ bookmark.category.name }}
                         </span>
                         {% endif %}
-                        <span>{{ bookmark.created_at|date:"m-d" }}</span>
+                        <span title="创建时间"><i class="fas fa-plus mr-0.5"></i>{{ bookmark.created_at|date:"m-d H:i" }}</span>
+                        {% if bookmark.last_visited %}
+                        <span title="最近访问"><i class="fas fa-clock mr-0.5"></i>{{ bookmark.last_visited|date:"m-d H:i" }}</span>
+                        {% endif %}
                         {% if bookmark.visit_count > 0 %}
-                        <span><i class="fas fa-eye mr-0.5"></i>{{ bookmark.visit_count }}</span>
+                        <span title="访问次数"><i class="fas fa-eye mr-0.5"></i>{{ bookmark.visit_count }}</span>
                         {% endif %}
                     </div>
                 </div>
@@ -162,6 +165,16 @@ function togglePrivacy(id) {
     .then(data => {
         if (data.success) {
             location.reload();
+        }
+    });
+}
+
+function recordVisit(id) {
+    fetch(`/bookmarks/${id}/visit/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
         }
     });
 }

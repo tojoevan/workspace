@@ -57,7 +57,7 @@
     {% if bookmarks %}
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         {% for bookmark in bookmarks %}
-        <a href="{{ bookmark.url }}" target="_blank" class="group bg-white rounded-xl border border-gray-100 p-3 hover:border-primary-200 hover:shadow-md transition-all">
+        <a href="{{ bookmark.url }}" target="_blank" onclick="recordVisit({{ bookmark.pk }})" title="{{ bookmark.url }}" class="group bg-white rounded-xl border border-gray-100 p-3 hover:border-primary-200 hover:shadow-md transition-all">
             <div class="flex flex-col items-center text-center">
                 <div class="w-10 h-10 bg-gradient-to-br from-teal-50 to-blue-50 rounded-xl flex items-center justify-center mb-2 group-hover:from-teal-100 group-hover:to-blue-100 transition-colors">
                     {% if bookmark.favicon %}
@@ -66,8 +66,15 @@
                     <i class="fas fa-link text-teal-500"></i>
                     {% endif %}
                 </div>
-                <p class="text-xs font-medium text-gray-700 truncate w-full">{{ bookmark.title }}</p>
-                <p class="text-xs text-gray-400 truncate w-full mt-0.5">{{ bookmark.get_domain }}</p>
+                <p class="text-xs font-medium text-gray-700 truncate w-full">
+                    {{ bookmark.title }}
+                    {% if bookmark.visit_count > 0 %}
+                    <span class="text-gray-400 font-normal">({{ bookmark.visit_count }})</span>
+                    {% endif %}
+                </p>
+                {% if bookmark.last_visited %}
+                <p class="text-xs text-gray-400 mt-0.5"><i class="fas fa-clock mr-0.5"></i>{{ bookmark.last_visited|date:"m-d H:i" }}</p>
+                {% endif %}
                 {% if bookmark.is_pinned %}
                 <i class="fas fa-thumbtack text-primary-400 text-xs mt-1"></i>
                 {% endif %}
@@ -100,6 +107,17 @@ function applyFilter() {
     if (search) params.set('search', search);
 
     window.location.href = `{% url 'bookmarks:bookmark_public' %}?${params.toString()}`;
+}
+
+function recordVisit(id) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token }}';
+    fetch(`/bookmarks/${id}/visit/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        }
+    });
 }
 </script>
 {% endblock %}

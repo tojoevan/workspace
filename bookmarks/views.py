@@ -3,11 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils import timezone
 from .models import Bookmark, BookmarkCategory
 import json
 
 
+@ensure_csrf_cookie
 def bookmark_public(request):
     """公开书签页面（无需登录）"""
     bookmarks = Bookmark.objects.filter(is_private=False).select_related('user', 'category')
@@ -224,11 +226,13 @@ def bookmark_toggle_privacy(request, pk):
     })
 
 
-@login_required
 @require_POST
 def bookmark_visit(request, pk):
     """记录书签访问"""
-    bookmark = get_object_or_404(Bookmark, pk=pk, user=request.user)
+    bookmark = get_object_or_404(Bookmark, pk=pk)
+    # 只有公开书签或用户自己的书签可以记录访问
+    if bookmark.is_private and (not request.user.is_authenticated or bookmark.user != request.user):
+        return JsonResponse({'success': False, 'error': '无权访问'}, status=403)
     bookmark.visit_count += 1
     bookmark.last_visited = timezone.now()
     bookmark.save()
