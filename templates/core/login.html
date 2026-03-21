@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录 - 信息工作台</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
@@ -54,9 +76,9 @@
         <!-- Logo -->
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-2xl mb-4">
-                <i class="fas fa-book-reader text-4xl bg-gradient-to-br from-primary-600 to-purple-600 bg-clip-text text-transparent"></i>
+                <i class="fas fa-book-reader text-4xl text-primary-600"></i>
             </div>
-            <h1 class="text-3xl font-bold text-white mb-2">信息工作台</h1>
+            <h1 class="text-3xl font-bold text-white mb-2">工作台</h1>
             <p class="text-white/80">高效阅读，智能管理</p>
         </div>
         
@@ -119,7 +141,7 @@
         </div>
         
         <!-- Features -->
-        <div class="mt-8 grid grid-cols-3 gap-4 text-center text-white/80 text-sm">
+        <div class="mt-8 grid grid-cols-3 md:grid-cols-6 gap-4 text-center text-white/80 text-sm">
             <div>
                 <i class="fas fa-rss text-2xl mb-2"></i>
                 <p>RSS 订阅</p>
@@ -127,6 +149,18 @@
             <div>
                 <i class="fas fa-newspaper text-2xl mb-2"></i>
                 <p>新闻聚合</p>
+            </div>
+            <div>
+                <i class="fas fa-bookmark text-2xl mb-2"></i>
+                <p>网址导航</p>
+            </div>
+            <div>
+                <i class="fas fa-check-circle text-2xl mb-2"></i>
+                <p>待办管理</p>
+            </div>
+            <div>
+                <i class="fas fa-sticky-note text-2xl mb-2"></i>
+                <p>笔记写作</p>
             </div>
             <div>
                 <i class="fas fa-robot text-2xl mb-2"></i>
