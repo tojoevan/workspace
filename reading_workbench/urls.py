@@ -9,19 +9,20 @@ from core import views as core_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
+
     # Core
     path('', core_views.dashboard, name='dashboard'),
     path('login/', core_views.login_view, name='login'),
     path('logout/', core_views.logout_view, name='logout'),
     path('search/', core_views.search, name='search'),
     path('api-docs/', core_views.api_docs, name='api_docs'),
-    
+    path('user/profile/', core_views.user_profile, name='user_profile'),
+
     # Apps
     path('rss/', include('rss.urls')),
     path('news/', include('news.urls')),
     path('notes/', include('notes.urls')),
-    
+
     # API
     path('api/', include('api.urls')),
 ]

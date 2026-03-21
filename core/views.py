@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.forms import PasswordChangeForm
 from rss.models import RSSFeed, RSSArticle
 from news.models import NewsArticle
 from notes.models import Note
@@ -123,3 +124,48 @@ def search(request):
 def api_docs(request):
     """API 文档页面"""
     return render(request, 'core/api_docs.html')
+
+
+@login_required
+def user_profile(request):
+    """用户管理页面"""
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+
+        if form_type == 'password':
+            # 密码修改
+            form = PasswordChangeForm(request.user, request.POST)
+            if form.is_valid():
+                user = form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, '密码修改成功！')
+                return redirect('user_profile')
+            else:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'{error}')
+        elif form_type == 'profile':
+            # 个人信息修改
+            email = request.POST.get('email')
+            if email:
+                request.user.email = email
+                request.user.save()
+                messages.success(request, '个人信息更新成功！')
+                return redirect('user_profile')
+
+    # 获取用户统计数据
+    stats = {
+        'rss_feeds': RSSFeed.objects.filter(user=request.user).count(),
+        'rss_articles': RSSArticle.objects.filter(feed__user=request.user).count(),
+        'news_articles': NewsArticle.objects.filter(user=request.user).count(),
+        'notes': Note.objects.filter(user=request.user).count(),
+    }
+
+    password_form = PasswordChangeForm(request.user)
+
+    context = {
+        'stats': stats,
+        'password_form': password_form,
+    }
+
+    return render(request, 'core/user_profile.html', context)
