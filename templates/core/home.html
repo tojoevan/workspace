@@ -36,9 +36,9 @@
     </div>
     {% endif %}
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 {% if user.is_authenticated %}lg:grid-cols-4{% else %}lg:grid-cols-4{% endif %} gap-6">
         <!-- 左侧：新闻和RSS -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="{% if user.is_authenticated %}lg:col-span-2{% else %}lg:col-span-3{% endif %} space-y-6">
             <!-- RSS文章 -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
@@ -167,18 +167,6 @@
                     </div>
                     {% endfor %}
                 </div>
-            </div>
-            {% else %}
-            <!-- 未登录提示 -->
-            <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 text-center">
-                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
-                    <i class="fas fa-user-circle text-2xl text-primary-500"></i>
-                </div>
-                <h3 class="font-semibold text-gray-800 text-sm mb-1">登录解锁更多</h3>
-                <p class="text-xs text-gray-500 mb-3">管理待办、收藏书签</p>
-                <a href="{% url 'login' %}" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
-                    <i class="fas fa-sign-in-alt mr-1"></i>登录
-                </a>
             </div>
             {% endif %}
         </div>
