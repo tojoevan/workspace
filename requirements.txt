@@ -1,0 +1,20 @@
+# Django 部署依赖
+Django==5.2.11
+gunicorn==21.2.0
+python-dotenv==1.2.1
+
+# 数据库 (生产环境使用 PostgreSQL)
+psycopg2-binary==2.9.9
+
+# RSS 解析
+feedparser==6.0.12
+
+# HTTP 请求
+requests==2.32.5
+httpx==0.28.1
+
+# OpenAI API
+openai==2.16.0
+
+# 其他依赖
+pydantic==2.12.5
