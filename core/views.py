@@ -54,7 +54,7 @@ def home(request):
     # 获取公开的RSS文章（所有用户）
     recent_rss = RSSArticle.objects.filter(
         feed__is_active=True
-    ).select_related('feed').order_by('-published_at')[:20]
+    ).select_related('feed').order_by('-published_at')[:6]
 
     # 获取公开的新闻（所有用户）
     recent_news = NewsArticle.objects.all().select_related('source').order_by('-published_at')[:20]

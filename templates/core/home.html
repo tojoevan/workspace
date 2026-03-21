@@ -100,7 +100,7 @@
                 {% endif %}
             </div>
             {% else %}
-            <!-- 未登录：分开显示RSS和新闻 -->
+            <!-- 未登录：RSS文章 -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                     <h2 class="font-semibold text-gray-800">
@@ -121,34 +121,6 @@
                     <div class="px-4 py-8 text-center text-gray-400">
                         <i class="fas fa-rss text-3xl mb-2"></i>
                         <p class="text-sm">暂无RSS文章</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                    <h2 class="font-semibold text-gray-800">
-                        <i class="fas fa-newspaper text-blue-500 mr-2"></i>新闻资讯
-                    </h2>
-                </div>
-                <div class="divide-y divide-gray-50">
-                    {% for article in recent_news %}
-                    <a href="{{ article.link }}" target="_blank" class="block px-4 py-3 hover:bg-gray-50 transition-colors">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-medium text-gray-800 truncate">{{ article.title }}</h3>
-                                <p class="text-xs text-gray-500 mt-1">
-                                    {% if article.source %}{{ article.source.name }} · {% endif %}
-                                    {{ article.published_at|date:"m-d H:i" }}
-                                </p>
-                            </div>
-                        </div>
-                    </a>
-                    {% empty %}
-                    <div class="px-4 py-8 text-center text-gray-400">
-                        <i class="fas fa-newspaper text-3xl mb-2"></i>
-                        <p class="text-sm">暂无新闻</p>
                     </div>
                     {% endfor %}
                 </div>
