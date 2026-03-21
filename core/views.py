@@ -203,39 +203,67 @@ def dashboard(request):
 @login_required
 def search(request):
     """全局搜索"""
-    query = request.GET.get('q', '')
-    
+    query = request.GET.get('q', '').strip()
+
+    rss_results = []
+    news_results = []
+    note_results = []
+    todo_results = []
+    bookmark_results = []
+
     if query:
+        # RSS文章搜索
         rss_results = RSSArticle.objects.filter(
             feed__user=request.user
         ).filter(
-            Q(title__icontains=query) | Q(description__icontains=query)
+            Q(title__icontains=query) | Q(description__icontains=query) | Q(content__icontains=query)
         ).select_related('feed')[:10]
-        
+
+        # 新闻资讯搜索
         news_results = NewsArticle.objects.filter(
             user=request.user
         ).filter(
             Q(title__icontains=query) | Q(summary__icontains=query) | Q(content__icontains=query)
         ).select_related('source')[:10]
-        
+
+        # 笔记搜索
         note_results = Note.objects.filter(
             user=request.user
         ).filter(
             Q(title__icontains=query) | Q(content__icontains=query) | Q(tags__icontains=query)
         )[:10]
-    else:
-        rss_results = []
-        news_results = []
-        note_results = []
-    
+
+        # 待办搜索
+        from todo.models import Todo
+        todo_results = Todo.objects.filter(
+            user=request.user
+        ).filter(
+            Q(title__icontains=query) | Q(description__icontains=query)
+        )[:10]
+
+        # 书签搜索
+        from bookmarks.models import Bookmark
+        bookmark_results = Bookmark.objects.filter(
+            user=request.user
+        ).filter(
+            Q(title__icontains=query) | Q(description__icontains=query) | Q(url__icontains=query)
+        )[:10]
+
+    total_results = (
+        len(rss_results) + len(news_results) + len(note_results) +
+        len(todo_results) + len(bookmark_results)
+    )
+
     context = {
         'query': query,
         'rss_results': rss_results,
         'news_results': news_results,
         'note_results': note_results,
-        'total_results': len(rss_results) + len(news_results) + len(note_results),
+        'todo_results': todo_results,
+        'bookmark_results': bookmark_results,
+        'total_results': total_results,
     }
-    
+
     return render(request, 'core/search.html', context)
 
 

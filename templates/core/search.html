@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}搜索结果 - 工作台{% endblock %}
+{% block page_title %}搜索{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- 搜索框 -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+        <form method="get" class="flex gap-3">
+            <div class="flex-1 relative">
+                <input type="text" name="q" value="{{ query }}" placeholder="搜索RSS、新闻、笔记、待办、书签..."
+                    class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all outline-none">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            </div>
+            <button type="submit" class="px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors">
+                搜索
+            </button>
+        </form>
+        {% if query %}
+        <p class="text-sm text-gray-500 mt-3">找到 <span class="font-medium text-primary-600">{{ total_results }}</span> 条与"<span class="font-medium">{{ query }}</span>"相关的结果</p>
+        {% endif %}
+    </div>
+
+    {% if query %}
+    <!-- RSS文章 -->
+    {% if rss_results %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
+        <div class="px-4 py-3 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-800">
+                <i class="fas fa-rss text-orange-500 mr-2"></i>RSS文章
+                <span class="text-xs text-gray-400 font-normal ml-2">{{ rss_results|length }} 条</span>
+            </h3>
+        </div>
+        <div class="divide-y divide-gray-50">
+            {% for article in rss_results %}
+            <a href="{{ article.link }}" target="_blank" class="block px-4 py-3 hover:bg-gray-50 transition-colors">
+                <h4 class="text-sm font-medium text-gray-800">{{ article.title }}</h4>
+                <p class="text-xs text-gray-500 mt-1">{{ article.feed.title }} · {{ article.published_at|date:"Y-m-d H:i" }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 新闻资讯 -->
+    {% if news_results %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
+        <div class="px-4 py-3 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-800">
+                <i class="fas fa-newspaper text-blue-500 mr-2"></i>新闻资讯
+                <span class="text-xs text-gray-400 font-normal ml-2">{{ news_results|length }} 条</span>
+            </h3>
+        </div>
+        <div class="divide-y divide-gray-50">
+            {% for article in news_results %}
+            <a href="{{ article.link }}" target="_blank" class="block px-4 py-3 hover:bg-gray-50 transition-colors">
+                <h4 class="text-sm font-medium text-gray-800">{{ article.title }}</h4>
+                <p class="text-xs text-gray-500 mt-1">
+                    {% if article.source %}{{ article.source.name }} · {% endif %}{{ article.published_at|date:"Y-m-d H:i" }}
+                </p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 笔记 -->
+    {% if note_results %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
+        <div class="px-4 py-3 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-800">
+                <i class="fas fa-sticky-note text-green-500 mr-2"></i>笔记
+                <span class="text-xs text-gray-400 font-normal ml-2">{{ note_results|length }} 条</span>
+            </h3>
+        </div>
+        <div class="divide-y divide-gray-50">
+            {% for note in note_results %}
+            <a href="{% url 'notes:note_detail' note.pk %}" class="block px-4 py-3 hover:bg-gray-50 transition-colors">
+                <h4 class="text-sm font-medium text-gray-800">{{ note.title }}</h4>
+                <p class="text-xs text-gray-500 mt-1">{{ note.updated_at|date:"Y-m-d H:i" }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 待办事项 -->
+    {% if todo_results %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
+        <div class="px-4 py-3 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-800">
+                <i class="fas fa-check-circle text-purple-500 mr-2"></i>待办事项
+                <span class="text-xs text-gray-400 font-normal ml-2">{{ todo_results|length }} 条</span>
+            </h3>
+        </div>
+        <div class="divide-y divide-gray-50">
+            {% for todo in todo_results %}
+            <a href="{% url 'todo:todo_detail' todo.pk %}" class="block px-4 py-3 hover:bg-gray-50 transition-colors">
+                <h4 class="text-sm font-medium text-gray-800">{{ todo.title }}</h4>
+                <p class="text-xs text-gray-500 mt-1">
+                    {% if todo.due_date %}截止：{{ todo.due_date|date:"Y-m-d" }}{% endif %}
+                    {% if todo.status == 'completed' %}<span class="text-green-500 ml-2">已完成</span>{% endif %}
+                </p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 书签 -->
+    {% if bookmark_results %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
+        <div class="px-4 py-3 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-800">
+                <i class="fas fa-bookmark text-teal-500 mr-2"></i>书签
+                <span class="text-xs text-gray-400 font-normal ml-2">{{ bookmark_results|length }} 条</span>
+            </h3>
+        </div>
+        <div class="divide-y divide-gray-50">
+            {% for bookmark in bookmark_results %}
+            <a href="{{ bookmark.url }}" target="_blank" class="block px-4 py-3 hover:bg-gray-50 transition-colors">
+                <h4 class="text-sm font-medium text-gray-800">{{ bookmark.title }}</h4>
+                <p class="text-xs text-gray-500 mt-1 truncate">{{ bookmark.url }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 无结果 -->
+    {% if total_results == 0 %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <i class="fas fa-search text-4xl text-gray-300 mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-700 mb-2">未找到相关结果</h3>
+        <p class="text-sm text-gray-500">尝试使用其他关键词搜索</p>
+    </div>
+    {% endif %}
+    {% else %}
+    <!-- 初始状态 -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <i class="fas fa-search text-4xl text-gray-300 mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-700 mb-2">输入关键词开始搜索</h3>
+        <p class="text-sm text-gray-500">支持搜索RSS文章、新闻资讯、笔记、待办事项、书签</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
