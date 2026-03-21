@@ -416,7 +416,21 @@ def mark_article_read(request):
 @login_required
 @require_http_methods(["POST"])
 def mark_all_read(request):
-    """标记所有文章为已读"""
-    RSSArticle.objects.filter(feed__user=request.user, is_read=False).update(is_read=True)
-    NewsArticle.objects.filter(user=request.user, is_read=False).update(is_read=True)
-    return JsonResponse({'success': True})
+    """标记当前显示的文章为已读"""
+    import json
+    try:
+        data = json.loads(request.body)
+        articles = data.get('articles', [])
+
+        for article in articles:
+            article_type = article.get('type')
+            article_id = article.get('id')
+
+            if article_type == 'rss':
+                RSSArticle.objects.filter(id=article_id, feed__user=request.user).update(is_read=True)
+            elif article_type == 'news':
+                NewsArticle.objects.filter(id=article_id, user=request.user).update(is_read=True)
+
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

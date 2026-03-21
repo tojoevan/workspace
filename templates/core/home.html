@@ -93,7 +93,7 @@
                 </div>
                 {% if combined_articles %}
                 <div class="px-4 py-3 border-t border-gray-100 bg-gray-50 rounded-b-xl">
-                    <button onclick="markAllRead()" class="w-full py-2 text-sm text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                    <button onclick="showMarkAllReadModal()" class="w-full py-2 text-sm text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                         <i class="fas fa-check-double mr-2"></i>全部标记为已读
                     </button>
                 </div>
@@ -268,6 +268,27 @@
 </div>
 
 {% if user.is_authenticated %}
+<!-- 确认模态框 -->
+<div id="confirmModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 transform scale-95 opacity-0 transition-all duration-300" id="confirmModalContent">
+        <div class="p-6">
+            <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-100 rounded-full mb-4">
+                <i class="fas fa-check-double text-blue-600 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 text-center mb-2">确认标记已读</h3>
+            <p class="text-sm text-gray-500 text-center mb-6">确定将当前显示的 {{ combined_articles|length }} 篇文章标记为已读吗？</p>
+            <div class="flex space-x-3">
+                <button onclick="closeConfirmModal()" class="flex-1 py-2 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors">
+                    取消
+                </button>
+                <button onclick="confirmMarkAllRead()" class="flex-1 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors">
+                    确认
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function toggleTodo(id) {
     fetch(`/todos/${id}/complete/`, {
@@ -341,21 +362,53 @@ function markAsRead(type, id) {
 }
 
 function markAllRead() {
-    if (confirm('确定将所有文章标记为已读吗？')) {
-        fetch('{% url "mark_all_read" %}', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            }
-        });
-    }
+    // 收集当前显示的所有文章
+    const articles = [];
+    {% for article in combined_articles %}
+    articles.push({type: '{{ article.type }}', id: {{ article.id }}});
+    {% endfor %}
+
+    fetch('{% url "mark_all_read" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({articles: articles})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function showMarkAllReadModal() {
+    const modal = document.getElementById('confirmModal');
+    const content = document.getElementById('confirmModalContent');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
+
+function closeConfirmModal() {
+    const modal = document.getElementById('confirmModal');
+    const content = document.getElementById('confirmModalContent');
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 200);
+}
+
+function confirmMarkAllRead() {
+    closeConfirmModal();
+    markAllRead();
 }
 </script>
 {% endif %}
