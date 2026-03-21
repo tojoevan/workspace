@@ -290,49 +290,64 @@ def quick_note_from_article(request):
     """从文章快速创建笔记"""
     article_type = request.GET.get('type')
     article_id = request.GET.get('id')
-    
+
     initial_title = ''
     initial_content = ''
-    
+    article = None
+
     if article_type == 'rss' and article_id:
         from rss.models import RSSArticle
         article = get_object_or_404(RSSArticle, pk=article_id, feed__user=request.user)
-        initial_title = f"笔记：{article.title}"
-        initial_content = f"原文：{article.title}\n链接：{article.link}\n\n---\n\n"
+        initial_title = article.title
+        # 获取文章内容，优先使用content，其次description
+        article_content = article.content or article.description or ''
+        initial_content = f"# {article.title}\n\n原文链接：{article.link}\n\n---\n\n{article_content}"
     elif article_type == 'news' and article_id:
         article = get_object_or_404(NewsArticle, pk=article_id, user=request.user)
-        initial_title = f"笔记：{article.title}"
-        initial_content = f"原文：{article.title}\n链接：{article.link}\n\n---\n\n"
-    
+        initial_title = article.title
+        # 获取文章内容，优先使用content，其次summary
+        article_content = article.content or article.summary or ''
+        initial_content = f"# {article.title}\n\n原文链接：{article.link}\n\n---\n\n{article_content}"
+
     if request.method == 'POST':
         title = request.POST.get('title')
         content = request.POST.get('content')
         tags = request.POST.get('tags', '')
-        
+        post_article_type = request.POST.get('article_type')
+        post_article_id = request.POST.get('article_id')
+
         note = Note.objects.create(
             user=request.user,
             title=title,
             content=content,
             tags=tags,
         )
-        
+
         # 关联文章
-        if article_type == 'rss' and article_id:
+        if post_article_type == 'rss' and post_article_id:
             from rss.models import RSSArticle
-            article = get_object_or_404(RSSArticle, pk=article_id, feed__user=request.user)
-            note.related_rss = article
-            note.save()
-        elif article_type == 'news' and article_id:
-            article = get_object_or_404(NewsArticle, pk=article_id, user=request.user)
-            note.related_article = article
-            note.save()
-        
-        messages.success(request, '笔记已创建')
-        return redirect('notes:note_detail', pk=note.pk)
-    
+            try:
+                rss_article = RSSArticle.objects.get(pk=post_article_id, feed__user=request.user)
+                note.related_rss = rss_article
+                note.save()
+            except RSSArticle.DoesNotExist:
+                pass
+        elif post_article_type == 'news' and post_article_id:
+            try:
+                news_article = NewsArticle.objects.get(pk=post_article_id, user=request.user)
+                note.related_article = news_article
+                note.save()
+            except NewsArticle.DoesNotExist:
+                pass
+
+        messages.success(request, '笔记已创建，可继续编辑或使用AI润色')
+        return redirect('notes:note_edit', pk=note.pk)
+
     context = {
         'initial_title': initial_title,
         'initial_content': initial_content,
+        'article_type': article_type,
+        'article_id': article_id,
     }
     return render(request, 'notes/quick_note.html', context)
 

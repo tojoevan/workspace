@@ -68,6 +68,9 @@ def home(request):
     # 如果用户已登录，额外获取其个人数据
     user_todos = []
     user_bookmarks = []
+    combined_articles = []
+    total_unread = 0
+
     if request.user.is_authenticated:
         from todo.models import Todo
         user_todos = Todo.objects.filter(
@@ -79,12 +82,73 @@ def home(request):
             user=request.user
         ).order_by('-is_pinned', '-last_visited')[:10]
 
+        # 获取筛选参数
+        filter_type = request.GET.get('filter', 'unread')  # unread, starred, read_later, all
+
+        # 构建查询
+        rss_articles = RSSArticle.objects.filter(
+            feed__user=request.user
+        ).select_related('feed')
+
+        news_articles = NewsArticle.objects.filter(
+            user=request.user
+        ).select_related('source')
+
+        # 应用筛选
+        if filter_type == 'starred':
+            rss_articles = rss_articles.filter(is_starred=True)
+            news_articles = news_articles.filter(is_starred=True)
+        elif filter_type == 'read_later':
+            rss_articles = rss_articles.filter(is_read_later=True)
+            news_articles = news_articles.filter(is_read_later=True)
+        elif filter_type == 'unread':
+            rss_articles = rss_articles.filter(is_read=False)
+            news_articles = news_articles.filter(is_read=False)
+
+        # 计算未读数量
+        total_unread = RSSArticle.objects.filter(feed__user=request.user, is_read=False).count()
+        total_unread += NewsArticle.objects.filter(user=request.user, is_read=False).count()
+
+        # 合并文章列表
+        articles_list = []
+        for article in rss_articles[:50]:
+            articles_list.append({
+                'id': article.id,
+                'type': 'rss',
+                'title': article.title,
+                'link': article.link,
+                'source': article.feed.title,
+                'published_at': article.published_at,
+                'is_read': article.is_read,
+                'is_starred': article.is_starred,
+                'is_read_later': article.is_read_later,
+            })
+
+        for article in news_articles[:50]:
+            articles_list.append({
+                'id': article.id,
+                'type': 'news',
+                'title': article.title,
+                'link': article.link,
+                'source': article.source.name if article.source else '新闻',
+                'published_at': article.published_at,
+                'is_read': article.is_read,
+                'is_starred': article.is_starred,
+                'is_read_later': article.is_read_later,
+            })
+
+        # 按时间排序
+        combined_articles = sorted(articles_list, key=lambda x: x['published_at'], reverse=True)[:12]
+
     context = {
         'recent_rss': recent_rss,
         'recent_news': recent_news,
         'public_bookmarks': public_bookmarks,
         'user_todos': user_todos,
         'user_bookmarks': user_bookmarks,
+        'combined_articles': combined_articles,
+        'filter_type': request.GET.get('filter', 'unread') if request.user.is_authenticated else 'unread',
+        'total_unread': total_unread,
     }
 
     return render(request, 'core/home.html', context)
@@ -266,3 +330,93 @@ def check_alias(request):
         return JsonResponse({'available': False, 'message': '该别名已被其他用户使用'})
     else:
         return JsonResponse({'available': True, 'message': '别名可用'})
+
+
+@login_required
+@require_http_methods(["POST"])
+def toggle_article_star(request):
+    """切换文章收藏状态"""
+    article_type = request.POST.get('type')
+    article_id = request.POST.get('id')
+
+    if article_type == 'rss':
+        try:
+            article = RSSArticle.objects.get(id=article_id, feed__user=request.user)
+            article.is_starred = not article.is_starred
+            article.save()
+            return JsonResponse({'success': True, 'is_starred': article.is_starred})
+        except RSSArticle.DoesNotExist:
+            return JsonResponse({'success': False, 'error': '文章不存在'})
+    elif article_type == 'news':
+        try:
+            article = NewsArticle.objects.get(id=article_id, user=request.user)
+            article.is_starred = not article.is_starred
+            article.save()
+            return JsonResponse({'success': True, 'is_starred': article.is_starred})
+        except NewsArticle.DoesNotExist:
+            return JsonResponse({'success': False, 'error': '文章不存在'})
+
+    return JsonResponse({'success': False, 'error': '无效的文章类型'})
+
+
+@login_required
+@require_http_methods(["POST"])
+def toggle_article_read_later(request):
+    """切换文章稍后阅读状态"""
+    article_type = request.POST.get('type')
+    article_id = request.POST.get('id')
+
+    if article_type == 'rss':
+        try:
+            article = RSSArticle.objects.get(id=article_id, feed__user=request.user)
+            article.is_read_later = not article.is_read_later
+            article.save()
+            return JsonResponse({'success': True, 'is_read_later': article.is_read_later})
+        except RSSArticle.DoesNotExist:
+            return JsonResponse({'success': False, 'error': '文章不存在'})
+    elif article_type == 'news':
+        try:
+            article = NewsArticle.objects.get(id=article_id, user=request.user)
+            article.is_read_later = not article.is_read_later
+            article.save()
+            return JsonResponse({'success': True, 'is_read_later': article.is_read_later})
+        except NewsArticle.DoesNotExist:
+            return JsonResponse({'success': False, 'error': '文章不存在'})
+
+    return JsonResponse({'success': False, 'error': '无效的文章类型'})
+
+
+@login_required
+@require_http_methods(["POST"])
+def mark_article_read(request):
+    """标记文章为已读"""
+    article_type = request.POST.get('type')
+    article_id = request.POST.get('id')
+
+    if article_type == 'rss':
+        try:
+            article = RSSArticle.objects.get(id=article_id, feed__user=request.user)
+            article.is_read = True
+            article.save()
+            return JsonResponse({'success': True})
+        except RSSArticle.DoesNotExist:
+            return JsonResponse({'success': False, 'error': '文章不存在'})
+    elif article_type == 'news':
+        try:
+            article = NewsArticle.objects.get(id=article_id, user=request.user)
+            article.is_read = True
+            article.save()
+            return JsonResponse({'success': True})
+        except NewsArticle.DoesNotExist:
+            return JsonResponse({'success': False, 'error': '文章不存在'})
+
+    return JsonResponse({'success': False, 'error': '无效的文章类型'})
+
+
+@login_required
+@require_http_methods(["POST"])
+def mark_all_read(request):
+    """标记所有文章为已读"""
+    RSSArticle.objects.filter(feed__user=request.user, is_read=False).update(is_read=True)
+    NewsArticle.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return JsonResponse({'success': True})

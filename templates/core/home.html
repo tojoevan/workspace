@@ -24,17 +24,88 @@
     {% endif %}
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!-- 左侧：新闻和RSS -->
-        <div class="{% if user.is_authenticated %}lg:col-span-3{% else %}lg:col-span-3{% endif %} space-y-6">
-            <!-- RSS文章 -->
+        <!-- 左侧：文章列表 -->
+        <div class="lg:col-span-3 space-y-6">
+            {% if user.is_authenticated %}
+            <!-- 已登录：合并文章列表 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div class="flex items-center space-x-2">
+                            <h2 class="font-semibold text-gray-800">
+                                <i class="fas fa-newspaper text-blue-500 mr-2"></i>文章资讯
+                            </h2>
+                            {% if total_unread > 0 %}
+                            <span class="px-2 py-0.5 text-xs bg-red-100 text-red-600 rounded-full">{{ total_unread }} 未读</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <!-- 筛选按钮 -->
+                            <div class="flex items-center bg-gray-100 rounded-lg p-1">
+                                <a href="?filter=unread" class="px-3 py-1 text-xs rounded-md transition-colors {% if filter_type == 'unread' %}bg-white text-primary-600 shadow-sm{% else %}text-gray-600 hover:text-gray-900{% endif %}">未读</a>
+                                <a href="?filter=starred" class="px-3 py-1 text-xs rounded-md transition-colors {% if filter_type == 'starred' %}bg-white text-primary-600 shadow-sm{% else %}text-gray-600 hover:text-gray-900{% endif %}">
+                                    <i class="fas fa-star text-yellow-400"></i> 收藏
+                                </a>
+                                <a href="?filter=read_later" class="px-3 py-1 text-xs rounded-md transition-colors {% if filter_type == 'read_later' %}bg-white text-primary-600 shadow-sm{% else %}text-gray-600 hover:text-gray-900{% endif %}">
+                                    <i class="fas fa-clock text-orange-400"></i> 稍后
+                                </a>
+                                <a href="?filter=all" class="px-3 py-1 text-xs rounded-md transition-colors {% if filter_type == 'all' %}bg-white text-primary-600 shadow-sm{% else %}text-gray-600 hover:text-gray-900{% endif %}">全部</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="divide-y divide-gray-50">
+                    {% for article in combined_articles %}
+                    <div class="px-4 py-1.5 hover:bg-gray-50 transition-colors group {% if article.is_read %}opacity-60{% endif %}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1 min-w-0 flex items-center">
+                                <span class="px-1.5 py-0.5 text-xs rounded shrink-0 {% if article.type == 'rss' %}bg-orange-100 text-orange-600{% else %}bg-blue-100 text-blue-600{% endif %}">
+                                    {% if article.type == 'rss' %}RSS{% else %}新闻{% endif %}
+                                </span>
+                                <span class="text-xs text-gray-400 ml-2 shrink-0">{{ article.source }} · {{ article.published_at|date:"m-d H:i" }}</span>
+                                <a href="{{ article.link }}" target="_blank" onclick="markAsRead('{{ article.type }}', {{ article.id }})" class="ml-2 block truncate">
+                                    <span class="text-sm text-gray-800 hover:text-primary-600 transition-colors {% if article.is_read %}line-through{% endif %}">
+                                        {{ article.title }}
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="flex items-center space-x-1 ml-2 shrink-0">
+                                <button onclick="toggleStar('{{ article.type }}', {{ article.id }})" class="p-1 rounded hover:bg-gray-100 transition-colors" title="收藏">
+                                    <i class="fas fa-star text-sm {% if article.is_starred %}text-yellow-400{% else %}text-gray-300{% endif %}"></i>
+                                </button>
+                                <button onclick="toggleReadLater('{{ article.type }}', {{ article.id }})" class="p-1 rounded hover:bg-gray-100 transition-colors" title="稍后阅读">
+                                    <i class="fas fa-clock text-sm {% if article.is_read_later %}text-orange-400{% else %}text-gray-300{% endif %}"></i>
+                                </button>
+                                <a href="{% url 'notes:quick_note' %}?type={{ article.type }}&id={{ article.id }}" class="p-1 rounded hover:bg-gray-100 transition-colors" title="创建笔记">
+                                    <i class="fas fa-sticky-note text-sm text-gray-300 hover:text-green-500"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="px-4 py-8 text-center text-gray-400">
+                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                        <p class="text-sm">
+                            {% if filter_type == 'starred' %}暂无收藏文章{% elif filter_type == 'read_later' %}暂无稍后阅读文章{% elif filter_type == 'unread' %}没有未读文章{% else %}暂无文章{% endif %}
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if combined_articles %}
+                <div class="px-4 py-3 border-t border-gray-100 bg-gray-50 rounded-b-xl">
+                    <button onclick="markAllRead()" class="w-full py-2 text-sm text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                        <i class="fas fa-check-double mr-2"></i>全部标记为已读
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <!-- 未登录：分开显示RSS和新闻 -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                     <h2 class="font-semibold text-gray-800">
                         <i class="fas fa-rss text-orange-500 mr-2"></i>RSS 文章
                     </h2>
-                    {% if user.is_authenticated %}
-                    <a href="{% url 'rss:feed_list' %}" class="text-sm text-primary-600 hover:text-primary-700">我的订阅</a>
-                    {% endif %}
                 </div>
                 <div class="divide-y divide-gray-50">
                     {% for article in recent_rss %}
@@ -44,9 +115,6 @@
                                 <h3 class="text-sm font-medium text-gray-800 truncate">{{ article.title }}</h3>
                                 <p class="text-xs text-gray-500 mt-1">{{ article.feed.title }} · {{ article.published_at|date:"m-d H:i" }}</p>
                             </div>
-                            {% if article.is_starred and user.is_authenticated %}
-                            <i class="fas fa-star text-yellow-400 ml-2"></i>
-                            {% endif %}
                         </div>
                     </a>
                     {% empty %}
@@ -58,15 +126,11 @@
                 </div>
             </div>
 
-            <!-- 新闻资讯 -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                     <h2 class="font-semibold text-gray-800">
                         <i class="fas fa-newspaper text-blue-500 mr-2"></i>新闻资讯
                     </h2>
-                    {% if user.is_authenticated %}
-                    <a href="{% url 'news:article_list' %}" class="text-sm text-primary-600 hover:text-primary-700">查看全部</a>
-                    {% endif %}
                 </div>
                 <div class="divide-y divide-gray-50">
                     {% for article in recent_news %}
@@ -79,9 +143,6 @@
                                     {{ article.published_at|date:"m-d H:i" }}
                                 </p>
                             </div>
-                            {% if article.is_starred and user.is_authenticated %}
-                            <i class="fas fa-star text-yellow-400 ml-2"></i>
-                            {% endif %}
                         </div>
                     </a>
                     {% empty %}
@@ -92,6 +153,7 @@
                     {% endfor %}
                 </div>
             </div>
+            {% endif %}
         </div>
 
         <!-- 右侧：快捷入口、我的书签、我的待办 -->
@@ -231,6 +293,69 @@ function recordVisit(id) {
             'Content-Type': 'application/json'
         }
     });
+}
+
+function toggleStar(type, id) {
+    fetch('{% url "toggle_article_star" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `type=${type}&id=${id}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function toggleReadLater(type, id) {
+    fetch('{% url "toggle_article_read_later" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `type=${type}&id=${id}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function markAsRead(type, id) {
+    fetch('{% url "mark_article_read" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `type=${type}&id=${id}`
+    });
+}
+
+function markAllRead() {
+    if (confirm('确定将所有文章标记为已读吗？')) {
+        fetch('{% url "mark_all_read" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
 }
 </script>
 {% endif %}

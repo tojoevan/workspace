@@ -18,6 +18,9 @@
                         <a href="{% url 'notes:note_detail' note.id %}" class="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors">
                             返回笔记
                         </a>
+                        <button onclick="saveNote()" class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-save mr-2"></i>保存
+                        </button>
                         <a href="{% url 'notes:note_edit' note.id %}" class="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors">
                             编辑
                         </a>
@@ -296,6 +299,32 @@ function loadHistory(content) {
     document.getElementById('aiResultPanel').classList.remove('hidden');
     document.getElementById('aiResult').value = content;
     currentResult = content;
+}
+
+function saveNote() {
+    const content = document.getElementById('noteContent').value;
+
+    const formData = new FormData();
+    formData.append('title', '{{ note.title }}');
+    formData.append('content', content);
+    formData.append('tags', '{{ note.tags }}');
+    formData.append('note_type', '{{ note.note_type }}');
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch('{% url "notes:note_edit" note.id %}', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => {
+        if (response.redirected) {
+            alert('笔记已保存');
+        } else {
+            alert('保存成功');
+        }
+    })
+    .catch(error => {
+        alert('保存失败：' + error.message);
+    });
 }
 </script>
 {% endblock %}

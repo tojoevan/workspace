@@ -18,6 +18,10 @@ urlpatterns = [
     path('api-docs/', core_views.api_docs, name='api_docs'),
     path('user/profile/', core_views.user_profile, name='user_profile'),
     path('user/check-alias/', core_views.check_alias, name='check_alias'),
+    path('article/toggle-star/', core_views.toggle_article_star, name='toggle_article_star'),
+    path('article/toggle-read-later/', core_views.toggle_article_read_later, name='toggle_article_read_later'),
+    path('article/mark-read/', core_views.mark_article_read, name='mark_article_read'),
+    path('article/mark-all-read/', core_views.mark_all_read, name='mark_all_read'),
 
     # Apps
     path('rss/', include('rss.urls')),

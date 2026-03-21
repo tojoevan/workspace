@@ -35,6 +35,7 @@ class RSSArticle(models.Model):
     published_at = models.DateTimeField(verbose_name='发布时间')
     is_read = models.BooleanField(default=False, verbose_name='已读')
     is_starred = models.BooleanField(default=False, verbose_name='收藏')
+    is_read_later = models.BooleanField(default=False, verbose_name='稍后阅读')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
 
     class Meta:
