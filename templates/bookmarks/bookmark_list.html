@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}我的书签 - 阅读工作台{% endblock %}
+{% block page_title %}我的书签{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    <!-- 操作栏 -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center space-x-2">
+            <!-- 搜索 -->
+            <form method="get" class="relative">
+                <input type="text" name="search" value="{{ search|default:'' }}" placeholder="搜索..." class="w-48 pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-200 outline-none">
+                <i class="fas fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            </form>
+            <!-- 分类筛选 -->
+            {% if categories %}
+            <select id="categoryFilter" onchange="applyFilter()" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:border-primary-500 outline-none">
+                <option value="">全部分类</option>
+                {% for cat in categories %}
+                <option value="{{ cat.pk }}" {% if selected_category == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            <!-- 排序 -->
+            <select id="sortSelect" onchange="applyFilter()" class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:border-primary-500 outline-none">
+                <option value="-created_at" {% if sort == '-created_at' or not sort %}selected{% endif %}>最新添加</option>
+                <option value="created_at" {% if sort == 'created_at' %}selected{% endif %}>最早添加</option>
+                <option value="title" {% if sort == 'title' %}selected{% endif %}>标题 A-Z</option>
+                <option value="-title" {% if sort == '-title' %}selected{% endif %}>标题 Z-A</option>
+                <option value="-visit_count" {% if sort == '-visit_count' %}selected{% endif %}>访问最多</option>
+                <option value="visit_count" {% if sort == 'visit_count' %}selected{% endif %}>访问最少</option>
+                <option value="-last_visited" {% if sort == '-last_visited' %}selected{% endif %}>最近访问</option>
+            </select>
+        </div>
+        <div class="flex items-center space-x-2">
+            <a href="{% url 'bookmarks:bookmark_public' %}" class="inline-flex items-center px-3 py-1.5 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                <i class="fas fa-globe mr-1"></i>公开导航
+            </a>
+            <a href="{% url 'bookmarks:category_list' %}" class="inline-flex items-center px-3 py-1.5 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                <i class="fas fa-folder mr-1"></i>分类
+            </a>
+            <a href="{% url 'bookmarks:bookmark_add' %}" class="inline-flex items-center px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
+                <i class="fas fa-plus mr-1"></i>添加
+            </a>
+        </div>
+    </div>
+
+    <!-- 统计 -->
+    <div class="text-xs text-gray-400">
+        共 {{ bookmarks.count }} 个书签
+    </div>
+
+    <!-- 书签列表 -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        {% if bookmarks %}
+        <div class="divide-y divide-gray-100">
+            {% for bookmark in bookmarks %}
+            <div class="p-3 flex items-center hover:bg-gray-50 transition-colors">
+                <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                    {% if bookmark.favicon %}
+                    <img src="{{ bookmark.favicon }}" alt="" class="w-5 h-5 rounded">
+                    {% else %}
+                    <i class="fas fa-link text-gray-400 text-sm"></i>
+                    {% endif %}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center">
+                        <a href="{{ bookmark.url }}" target="_blank" class="text-sm font-medium text-gray-800 hover:text-primary-600 truncate">
+                            {{ bookmark.title }}
+                        </a>
+                        {% if bookmark.is_pinned %}
+                        <i class="fas fa-thumbtack text-primary-500 ml-2 text-xs"></i>
+                        {% endif %}
+                        {% if bookmark.is_private %}
+                        <span class="ml-2 text-xs px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded">隐私</span>
+                        {% else %}
+                        <span class="ml-2 text-xs px-1.5 py-0.5 bg-teal-50 text-teal-600 rounded">公开</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-gray-400 truncate">{{ bookmark.url }}</p>
+                    <div class="flex items-center mt-1 text-xs text-gray-400 space-x-2">
+                        {% if bookmark.category %}
+                        <span class="px-1.5 py-0.5 rounded" style="background-color: {{ bookmark.category.color }}20; color: {{ bookmark.category.color }}">
+                            {{ bookmark.category.name }}
+                        </span>
+                        {% endif %}
+                        <span>{{ bookmark.created_at|date:"m-d" }}</span>
+                        {% if bookmark.visit_count > 0 %}
+                        <span><i class="fas fa-eye mr-0.5"></i>{{ bookmark.visit_count }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="flex items-center space-x-1 ml-2">
+                    <button onclick="togglePin({{ bookmark.pk }})" class="p-1.5 rounded hover:bg-gray-100 transition-colors" title="置顶">
+                        <i class="fas fa-thumbtack text-xs {% if bookmark.is_pinned %}text-primary-500{% else %}text-gray-300{% endif %}"></i>
+                    </button>
+                    <button onclick="togglePrivacy({{ bookmark.pk }})" class="p-1.5 rounded hover:bg-gray-100 transition-colors" title="{% if bookmark.is_private %}设为公开{% else %}设为隐私{% endif %}">
+                        <i class="fas {% if bookmark.is_private %}fa-lock text-gray-400{% else %}fa-globe text-teal-500{% endif %} text-xs"></i>
+                    </button>
+                    <a href="{% url 'bookmarks:bookmark_edit' pk=bookmark.pk %}" class="p-1.5 rounded hover:bg-gray-100 transition-colors" title="编辑">
+                        <i class="fas fa-edit text-xs text-gray-400 hover:text-primary-600"></i>
+                    </a>
+                    <a href="{% url 'bookmarks:bookmark_delete' pk=bookmark.pk %}" class="p-1.5 rounded hover:bg-gray-100 transition-colors" title="删除">
+                        <i class="fas fa-trash text-xs text-gray-400 hover:text-red-500"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="py-12 text-center text-gray-400">
+            <i class="fas fa-bookmark text-4xl mb-3"></i>
+            <p class="text-base">暂无书签</p>
+            <a href="{% url 'bookmarks:bookmark_add' %}" class="inline-flex items-center mt-3 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
+                <i class="fas fa-plus mr-1"></i>添加网址
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function applyFilter() {
+    const category = document.getElementById('categoryFilter')?.value || '';
+    const sort = document.getElementById('sortSelect').value;
+    const search = new URLSearchParams(window.location.search).get('search') || '';
+
+    const params = new URLSearchParams();
+    if (category) params.set('category', category);
+    if (sort) params.set('sort', sort);
+    if (search) params.set('search', search);
+
+    window.location.href = `{% url 'bookmarks:bookmark_list' %}?${params.toString()}`;
+}
+
+function togglePin(id) {
+    fetch(`/bookmarks/${id}/pin/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function togglePrivacy(id) {
+    fetch(`/bookmarks/${id}/privacy/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

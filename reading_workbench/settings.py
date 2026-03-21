@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'news',
     'notes',
     'api',
+    'todo',
+    'bookmarks',
 ]
 
 MIDDLEWARE = [

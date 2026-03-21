@@ -16,7 +16,7 @@ from notes.models import Note, UserProfile
 def login_view(request):
     """登录页面"""
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('home')
 
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -35,7 +35,7 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect('dashboard')
+            return redirect('home')
         else:
             messages.error(request, '用户名/别名或密码错误')
 
@@ -45,7 +45,49 @@ def login_view(request):
 def logout_view(request):
     """登出"""
     logout(request)
-    return redirect('login')
+    return redirect('home')
+
+
+@ensure_csrf_cookie
+def home(request):
+    """公开首页 - 无需登录即可查看"""
+    # 获取公开的RSS文章（所有用户）
+    recent_rss = RSSArticle.objects.filter(
+        feed__is_active=True
+    ).select_related('feed').order_by('-published_at')[:20]
+
+    # 获取公开的新闻（所有用户）
+    recent_news = NewsArticle.objects.all().select_related('source').order_by('-published_at')[:20]
+
+    # 获取公开书签（非隐私的书签）
+    from bookmarks.models import Bookmark
+    public_bookmarks = Bookmark.objects.filter(
+        is_private=False
+    ).select_related('user').order_by('-is_pinned', '-created_at')[:15]
+
+    # 如果用户已登录，额外获取其个人数据
+    user_todos = []
+    user_bookmarks = []
+    if request.user.is_authenticated:
+        from todo.models import Todo
+        user_todos = Todo.objects.filter(
+            user=request.user,
+            status='pending'
+        ).order_by('-is_pinned', '-priority', '-created_at')[:5]
+
+        user_bookmarks = Bookmark.objects.filter(
+            user=request.user
+        ).order_by('-is_pinned', '-created_at')[:10]
+
+    context = {
+        'recent_rss': recent_rss,
+        'recent_news': recent_news,
+        'public_bookmarks': public_bookmarks,
+        'user_todos': user_todos,
+        'user_bookmarks': user_bookmarks,
+    }
+
+    return render(request, 'core/home.html', context)
 
 
 @login_required

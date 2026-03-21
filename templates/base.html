@@ -95,63 +95,85 @@
         <aside class="fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 -translate-x-full lg:translate-x-0" id="sidebar">
             <!-- Logo -->
             <div class="p-6 border-b border-gray-100">
-                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3">
+                <a href="{% url 'home' %}" class="flex items-center space-x-3">
                     <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/30">
                         <i class="fas fa-book-reader text-white text-lg"></i>
                     </div>
                     <span class="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">阅读工作台</span>
                 </a>
             </div>
-            
+
             <!-- Navigation -->
             <nav class="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
-                <a href="{% url 'dashboard' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                <a href="{% url 'home' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.url_name == 'home' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                     <i class="fas fa-home w-5"></i>
-                    <span class="font-medium">仪表盘</span>
+                    <span class="font-medium">首页</span>
                 </a>
-                
+
+                {% if user.is_authenticated %}
                 <a href="{% url 'rss:feed_list' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.namespace == 'rss' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                     <i class="fas fa-rss w-5"></i>
                     <span class="font-medium">RSS 订阅</span>
                 </a>
-                
+
                 <a href="{% url 'news:article_list' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.namespace == 'news' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                     <i class="fas fa-newspaper w-5"></i>
                     <span class="font-medium">新闻资讯</span>
                 </a>
-                
+
                 <a href="{% url 'notes:note_list' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.namespace == 'notes' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                     <i class="fas fa-sticky-note w-5"></i>
                     <span class="font-medium">笔记</span>
                 </a>
-                
+
+                <a href="{% url 'todo:todo_list' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.namespace == 'todo' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <i class="fas fa-check-circle w-5"></i>
+                    <span class="font-medium">待办事项</span>
+                </a>
+
+                <a href="{% url 'bookmarks:bookmark_list' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.namespace == 'bookmarks' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                    <i class="fas fa-bookmark w-5"></i>
+                    <span class="font-medium">网址导航</span>
+                </a>
+
                 <div class="pt-4 mt-4 border-t border-gray-100">
                     <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">快捷操作</p>
-                    
+
                     <button onclick="openQuickAddModal()" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200">
                         <i class="fas fa-plus-circle w-5"></i>
                         <span class="font-medium">快速添加</span>
                     </button>
-                    
+
                     <button onclick="toggleAIAssistant()" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200">
                         <i class="fas fa-robot w-5"></i>
                         <span class="font-medium">AI 助手</span>
                     </button>
-                    
+
                     <a href="{% url 'notes:ai_settings' %}" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200">
                         <i class="fas fa-brain w-5"></i>
                         <span class="font-medium">AI 配置</span>
                     </a>
-                    
+
                     <a href="{% url 'api_docs' %}" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200">
                         <i class="fas fa-code w-5"></i>
                         <span class="font-medium">API 文档</span>
                     </a>
                 </div>
+                {% else %}
+                <div class="pt-4 mt-4 border-t border-gray-100">
+                    <div class="px-4 py-6 text-center">
+                        <p class="text-sm text-gray-500 mb-3">登录后解锁更多功能</p>
+                        <a href="{% url 'login' %}" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
+                            <i class="fas fa-sign-in-alt mr-2"></i>登录
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
             </nav>
-            
+
             <!-- User Profile -->
             <div class="p-4 border-t border-gray-100">
+                {% if user.is_authenticated %}
                 <a href="{% url 'user_profile' %}" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-gray-50 hover:bg-primary-50 transition-colors group cursor-pointer">
                     <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold">
                         {{ request.user.username|first|upper }}
@@ -167,6 +189,14 @@
                         </span>
                     </div>
                 </a>
+                {% else %}
+                <div class="px-4 py-3">
+                    <a href="{% url 'login' %}" class="flex items-center justify-center space-x-2 px-4 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span class="font-medium">登录账户</span>
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </aside>
 
@@ -298,6 +328,26 @@
                             <p class="text-sm text-gray-500">创建新的笔记</p>
                         </div>
                     </button>
+
+                    <button onclick="showAddTodoForm()" class="w-full flex items-center space-x-4 p-4 rounded-xl border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all group">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                            <i class="fas fa-check-circle text-purple-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="font-medium text-gray-800">新建待办</p>
+                            <p class="text-sm text-gray-500">快速记录待办事项</p>
+                        </div>
+                    </button>
+
+                    <button onclick="showAddBookmarkForm()" class="w-full flex items-center space-x-4 p-4 rounded-xl border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all group">
+                        <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center group-hover:bg-teal-200 transition-colors">
+                            <i class="fas fa-bookmark text-teal-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="font-medium text-gray-800">添加网址</p>
+                            <p class="text-sm text-gray-500">收藏常用网址</p>
+                        </div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -353,6 +403,14 @@
         
         function showAddNoteForm() {
             window.location.href = '{% url "notes:note_add" %}';
+        }
+
+        function showAddTodoForm() {
+            window.location.href = '{% url "todo:todo_add" %}';
+        }
+
+        function showAddBookmarkForm() {
+            window.location.href = '{% url "bookmarks:bookmark_add" %}';
         }
         
         // AI Chat

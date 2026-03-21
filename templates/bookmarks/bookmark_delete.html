@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}删除书签 - 阅读工作台{% endblock %}
+{% block page_title %}删除书签{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-trash text-red-500 text-2xl"></i>
+            </div>
+            <h2 class="text-xl font-semibold text-gray-800">确认删除</h2>
+            <p class="text-gray-500 mt-2">确定要删除书签「{{ bookmark.title }}」吗？此操作无法撤销。</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="flex items-center justify-center space-x-4">
+                <a href="{% url 'bookmarks:bookmark_detail' pk=bookmark.pk %}" class="px-6 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                    取消
+                </a>
+                <button type="submit" class="px-6 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors">
+                    <i class="fas fa-trash mr-2"></i>确认删除
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

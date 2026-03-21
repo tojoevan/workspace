@@ -11,7 +11,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Core
-    path('', core_views.dashboard, name='dashboard'),
+    path('', core_views.home, name='home'),
     path('login/', core_views.login_view, name='login'),
     path('logout/', core_views.logout_view, name='logout'),
     path('search/', core_views.search, name='search'),
@@ -23,6 +23,8 @@ urlpatterns = [
     path('rss/', include('rss.urls')),
     path('news/', include('news.urls')),
     path('notes/', include('notes.urls')),
+    path('todos/', include('todo.urls')),
+    path('bookmarks/', include('bookmarks.urls')),
 
     # API
     path('api/', include('api.urls')),

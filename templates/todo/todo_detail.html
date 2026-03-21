@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ todo.title }} - 待办详情{% endblock %}
+{% block page_title %}待办详情{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- 头部 -->
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleComplete()" class="w-7 h-7 rounded-full border-2 {% if todo.status == 'completed' %}bg-green-500 border-green-500{% else %}border-gray-300 hover:border-primary-500{% endif %} flex items-center justify-center transition-colors">
+                    {% if todo.status == 'completed' %}
+                    <i class="fas fa-check text-white text-sm"></i>
+                    {% endif %}
+                </button>
+                <h1 class="text-xl font-semibold text-gray-800 {% if todo.status == 'completed' %}line-through text-gray-400{% endif %}">
+                    {{ todo.title }}
+                    {% if todo.is_pinned %}
+                    <i class="fas fa-thumbtack text-primary-500 ml-2"></i>
+                    {% endif %}
+                </h1>
+            </div>
+            <div class="flex items-center space-x-2">
+                <a href="{% url 'todo:todo_edit' pk=todo.pk %}" class="px-4 py-2 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fas fa-edit mr-1"></i>编辑
+                </a>
+                <a href="{% url 'todo:todo_delete' pk=todo.pk %}" class="px-4 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <i class="fas fa-trash mr-1"></i>删除
+                </a>
+            </div>
+        </div>
+
+        <!-- 内容 -->
+        <div class="p-6 space-y-6">
+            <!-- 状态标签 -->
+            <div class="flex items-center space-x-3">
+                <span class="text-sm px-3 py-1 rounded-lg {% if todo.priority == 'high' %}bg-red-100 text-red-600{% elif todo.priority == 'medium' %}bg-yellow-100 text-yellow-600{% else %}bg-gray-100 text-gray-600{% endif %}">
+                    <i class="fas fa-flag mr-1"></i>{{ todo.get_priority_display }}优先级
+                </span>
+                <span class="text-sm px-3 py-1 rounded-lg {% if todo.status == 'completed' %}bg-green-100 text-green-600{% elif todo.status == 'in_progress' %}bg-blue-100 text-blue-600{% else %}bg-gray-100 text-gray-600{% endif %}">
+                    <i class="fas fa-circle mr-1 text-xs"></i>{{ todo.get_status_display }}
+                </span>
+            </div>
+
+            <!-- 描述 -->
+            {% if todo.description %}
+            <div>
+                <h3 class="text-sm font-medium text-gray-500 mb-2">描述</h3>
+                <p class="text-gray-700 whitespace-pre-wrap">{{ todo.description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- 时间信息 -->
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-gray-500">创建时间：</span>
+                    <span class="text-gray-700">{{ todo.created_at|date:"Y-m-d H:i" }}</span>
+                </div>
+                {% if todo.due_date %}
+                <div>
+                    <span class="text-gray-500">截止时间：</span>
+                    <span class="text-gray-700">{{ todo.due_date|date:"Y-m-d H:i" }}</span>
+                </div>
+                {% endif %}
+                {% if todo.completed_at %}
+                <div>
+                    <span class="text-gray-500">完成时间：</span>
+                    <span class="text-green-600">{{ todo.completed_at|date:"Y-m-d H:i" }}</span>
+                </div>
+                {% endif %}
+                <div>
+                    <span class="text-gray-500">更新时间：</span>
+                    <span class="text-gray-700">{{ todo.updated_at|date:"Y-m-d H:i" }}</span>
+                </div>
+            </div>
+
+            <!-- 关联书签 -->
+            {% if todo.related_bookmark %}
+            <div class="p-4 bg-teal-50 rounded-xl">
+                <h3 class="text-sm font-medium text-teal-700 mb-2">
+                    <i class="fas fa-bookmark mr-1"></i>关联书签
+                </h3>
+                <a href="{{ todo.related_bookmark.url }}" target="_blank" class="text-teal-600 hover:text-teal-700">
+                    {{ todo.related_bookmark.title }}
+                </a>
+            </div>
+            {% else %}
+            <!-- 检查是否有URL可转换 -->
+            <div>
+                <a href="{% url 'todo:todo_to_bookmark' pk=todo.pk %}" class="inline-flex items-center px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-colors">
+                    <i class="fas fa-bookmark mr-2"></i>转换为书签
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'todo:todo_list' %}" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-arrow-left mr-2"></i>返回列表
+        </a>
+    </div>
+</div>
+
+<script>
+function toggleComplete() {
+    fetch('{% url "todo:todo_toggle_complete" pk=todo.pk %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

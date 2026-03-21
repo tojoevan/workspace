@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block title %}首页 - 阅读工作台{% endblock %}
+{% block page_title %}首页{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    {% if user.is_authenticated %}
+    <!-- 已登录：快速操作栏 -->
+    <div class="flex flex-wrap gap-3">
+        <button onclick="openQuickAddModal()" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+            <i class="fas fa-plus mr-2"></i>快速添加
+        </button>
+        <a href="{% url 'todo:todo_add' %}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+            <i class="fas fa-check-circle mr-2 text-purple-600"></i>新建待办
+        </a>
+        <a href="{% url 'bookmarks:bookmark_add' %}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+            <i class="fas fa-bookmark mr-2 text-teal-600"></i>添加网址
+        </a>
+    </div>
+    {% else %}
+    <!-- 未登录：欢迎区域 -->
+    <div class="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-8 text-white">
+        <div class="max-w-2xl">
+            <h1 class="text-3xl font-bold mb-3">欢迎来到阅读工作台</h1>
+            <p class="text-primary-100 mb-6">一站式信息阅读与管理平台，订阅RSS、浏览新闻、管理待办、收藏网址</p>
+            <div class="flex gap-3">
+                <a href="{% url 'login' %}" class="inline-flex items-center px-6 py-3 bg-white text-primary-600 rounded-lg font-medium hover:bg-primary-50 transition-colors">
+                    <i class="fas fa-sign-in-alt mr-2"></i>登录
+                </a>
+                <span class="inline-flex items-center px-6 py-3 bg-primary-400/30 text-white rounded-lg">
+                    注册后体验完整功能
+                </span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- 左侧：新闻和RSS -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- RSS文章 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="font-semibold text-gray-800">
+                        <i class="fas fa-rss text-orange-500 mr-2"></i>RSS 文章
+                    </h2>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'rss:feed_list' %}" class="text-sm text-primary-600 hover:text-primary-700">我的订阅</a>
+                    {% endif %}
+                </div>
+                <div class="divide-y divide-gray-50">
+                    {% for article in recent_rss %}
+                    <a href="{{ article.link }}" target="_blank" class="block px-4 py-3 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-sm font-medium text-gray-800 truncate">{{ article.title }}</h3>
+                                <p class="text-xs text-gray-500 mt-1">{{ article.feed.title }} · {{ article.published_at|date:"m-d H:i" }}</p>
+                            </div>
+                            {% if article.is_starred and user.is_authenticated %}
+                            <i class="fas fa-star text-yellow-400 ml-2"></i>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="px-4 py-8 text-center text-gray-400">
+                        <i class="fas fa-rss text-3xl mb-2"></i>
+                        <p class="text-sm">暂无RSS文章</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 新闻资讯 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="font-semibold text-gray-800">
+                        <i class="fas fa-newspaper text-blue-500 mr-2"></i>新闻资讯
+                    </h2>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'news:article_list' %}" class="text-sm text-primary-600 hover:text-primary-700">查看全部</a>
+                    {% endif %}
+                </div>
+                <div class="divide-y divide-gray-50">
+                    {% for article in recent_news %}
+                    <a href="{{ article.link }}" target="_blank" class="block px-4 py-3 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-sm font-medium text-gray-800 truncate">{{ article.title }}</h3>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    {% if article.source %}{{ article.source.name }} · {% endif %}
+                                    {{ article.published_at|date:"m-d H:i" }}
+                                </p>
+                            </div>
+                            {% if article.is_starred and user.is_authenticated %}
+                            <i class="fas fa-star text-yellow-400 ml-2"></i>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="px-4 py-8 text-center text-gray-400">
+                        <i class="fas fa-newspaper text-3xl mb-2"></i>
+                        <p class="text-sm">暂无新闻</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 中间：网址导航侧边栏 -->
+        <div class="space-y-6">
+            <!-- 公开网址导航侧边栏 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="font-semibold text-gray-800">
+                        <i class="fas fa-bookmark text-teal-500 mr-2"></i>网址导航
+                    </h2>
+                    <a href="{% url 'bookmarks:bookmark_public' %}" class="text-sm text-primary-600 hover:text-primary-700">更多</a>
+                </div>
+                <div class="p-2 max-h-96 overflow-y-auto">
+                    {% for bookmark in public_bookmarks %}
+                    <a href="{{ bookmark.url }}" target="_blank" class="flex items-center px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors group">
+                        <div class="w-7 h-7 bg-gradient-to-br from-teal-100 to-blue-100 rounded flex items-center justify-center mr-2 group-hover:from-teal-200 group-hover:to-blue-200">
+                            <i class="fas fa-link text-teal-500 text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-medium text-gray-700 truncate">{{ bookmark.title }}</p>
+                        </div>
+                        {% if bookmark.is_pinned %}
+                        <i class="fas fa-thumbtack text-primary-400 text-xs ml-1"></i>
+                        {% endif %}
+                    </a>
+                    {% empty %}
+                    <div class="py-4 text-center text-gray-400">
+                        <i class="fas fa-bookmark text-lg mb-1"></i>
+                        <p class="text-xs">暂无公开书签</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if user.is_authenticated %}
+            <!-- 我的待办（仅登录用户可见） -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="font-semibold text-gray-800">
+                        <i class="fas fa-check-circle text-purple-500 mr-2"></i>我的待办
+                    </h2>
+                    <a href="{% url 'todo:todo_list' %}" class="text-sm text-primary-600 hover:text-primary-700">全部</a>
+                </div>
+                <div class="divide-y divide-gray-50 max-h-64 overflow-y-auto">
+                    {% for todo in user_todos %}
+                    <div class="px-4 py-2 flex items-center">
+                        <button onclick="toggleTodo({{ todo.pk }})" class="w-4 h-4 rounded-full border-2 border-gray-300 hover:border-primary-500 mr-2 flex items-center justify-center transition-colors">
+                        </button>
+                        <a href="{% url 'todo:todo_detail' pk=todo.pk %}" class="flex-1 min-w-0">
+                            <p class="text-xs font-medium text-gray-700 truncate">{{ todo.title }}</p>
+                        </a>
+                        {% if todo.is_pinned %}
+                        <i class="fas fa-thumbtack text-primary-400 text-xs ml-1"></i>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="px-4 py-4 text-center text-gray-400">
+                        <i class="fas fa-check-circle text-lg mb-1"></i>
+                        <p class="text-xs">暂无待办</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <!-- 未登录提示 -->
+            <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 text-center">
+                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
+                    <i class="fas fa-user-circle text-2xl text-primary-500"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800 text-sm mb-1">登录解锁更多</h3>
+                <p class="text-xs text-gray-500 mb-3">管理待办、收藏书签</p>
+                <a href="{% url 'login' %}" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
+                    <i class="fas fa-sign-in-alt mr-1"></i>登录
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 右侧：我的书签 -->
+        {% if user.is_authenticated %}
+        <div class="space-y-6">
+            <!-- 我的书签（仅登录用户可见） -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="font-semibold text-gray-800">
+                        <i class="fas fa-lock text-gray-400 mr-2"></i>我的书签
+                    </h2>
+                    <a href="{% url 'bookmarks:bookmark_list' %}" class="text-sm text-primary-600 hover:text-primary-700">管理</a>
+                </div>
+                <div class="p-2 max-h-80 overflow-y-auto">
+                    {% for bookmark in user_bookmarks %}
+                    <a href="{{ bookmark.url }}" target="_blank" class="flex items-center px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors group">
+                        <div class="w-7 h-7 bg-gray-100 rounded flex items-center justify-center mr-2 group-hover:bg-gray-200">
+                            <i class="fas fa-link text-gray-400 text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-medium text-gray-700 truncate">{{ bookmark.title }}</p>
+                        </div>
+                        {% if bookmark.is_private %}
+                        <i class="fas fa-lock text-gray-300 text-xs ml-1" title="隐私"></i>
+                        {% endif %}
+                    </a>
+                    {% empty %}
+                    <div class="py-4 text-center text-gray-400">
+                        <i class="fas fa-bookmark text-lg mb-1"></i>
+                        <p class="text-xs">暂无私有书签</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 快捷入口 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">快捷入口</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <a href="{% url 'rss:feed_list' %}" class="flex items-center p-2 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors">
+                        <i class="fas fa-rss text-orange-500 mr-2"></i>
+                        <span class="text-xs text-gray-700">RSS订阅</span>
+                    </a>
+                    <a href="{% url 'notes:note_list' %}" class="flex items-center p-2 rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
+                        <i class="fas fa-sticky-note text-green-500 mr-2"></i>
+                        <span class="text-xs text-gray-700">笔记</span>
+                    </a>
+                    <a href="{% url 'notes:ai_settings' %}" class="flex items-center p-2 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors">
+                        <i class="fas fa-brain text-purple-500 mr-2"></i>
+                        <span class="text-xs text-gray-700">AI配置</span>
+                    </a>
+                    <a href="{% url 'user_profile' %}" class="flex items-center p-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                        <i class="fas fa-user text-blue-500 mr-2"></i>
+                        <span class="text-xs text-gray-700">个人</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+<script>
+function toggleTodo(id) {
+    fetch(`/todos/${id}/complete/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endif %}
+{% endblock %}
