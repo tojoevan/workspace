@@ -22,7 +22,7 @@ python manage.py migrate --run-syncdb 2>/dev/null
 echo "检查默认用户..."
 python -c "
 import os
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reading_workbench.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'workspace.settings')
 import django
 django.setup()
 from django.contrib.auth.models import User

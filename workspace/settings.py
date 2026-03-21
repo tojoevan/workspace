@@ -63,7 +63,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'reading_workbench.urls'
+ROOT_URLCONF = 'workspace.urls'
 
 TEMPLATES = [
     {
@@ -80,7 +80,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'reading_workbench.wsgi.application'
+WSGI_APPLICATION = 'workspace.wsgi.application'
 
 
 # Database
