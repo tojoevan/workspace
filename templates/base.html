@@ -110,10 +110,12 @@
                     <span class="font-medium">首页</span>
                 </a>
 
+                {% if not user.is_authenticated %}
                 <a href="{% url 'bookmarks:bookmark_public' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.url_name == 'bookmark_public' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                     <i class="fas fa-globe w-5"></i>
                     <span class="font-medium">网址导航</span>
                 </a>
+                {% endif %}
 
                 {% if user.is_authenticated %}
                 <a href="{% url 'rss:feed_list' %}" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {% if request.resolver_match.namespace == 'rss' %}bg-primary-50 text-primary-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
