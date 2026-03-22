@@ -8,6 +8,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.core.paginator import Paginator
 from rss.models import RSSFeed, RSSArticle
 from news.models import NewsArticle
 from notes.models import Note, UserProfile
@@ -84,6 +85,8 @@ def home(request):
 
         # 获取筛选参数
         filter_type = request.GET.get('filter', 'unread')  # unread, starred, read_later, all
+        page = request.GET.get('page', 1)  # 页码
+        per_page = 12  # 每页显示数量
 
         # 构建查询
         rss_articles = RSSArticle.objects.filter(
@@ -111,7 +114,7 @@ def home(request):
 
         # 合并文章列表
         articles_list = []
-        for article in rss_articles[:50]:
+        for article in rss_articles:
             articles_list.append({
                 'id': article.id,
                 'type': 'rss',
@@ -124,7 +127,7 @@ def home(request):
                 'is_read_later': article.is_read_later,
             })
 
-        for article in news_articles[:50]:
+        for article in news_articles:
             articles_list.append({
                 'id': article.id,
                 'type': 'news',
@@ -138,7 +141,19 @@ def home(request):
             })
 
         # 按时间排序
-        combined_articles = sorted(articles_list, key=lambda x: x['published_at'], reverse=True)[:12]
+        articles_list = sorted(articles_list, key=lambda x: x['published_at'], reverse=True)
+        
+        # 分页
+        paginator = Paginator(articles_list, per_page)
+        page_obj = paginator.get_page(page)
+        combined_articles = page_obj.object_list
+        
+        # 保存当前筛选条件和页码到上下文
+        current_page = page_obj.number
+        has_previous = page_obj.has_previous()
+        has_next = page_obj.has_next()
+        previous_page_number = page_obj.previous_page_number() if has_previous else None
+        next_page_number = page_obj.next_page_number() if has_next else None
 
     context = {
         'recent_rss': recent_rss,
@@ -149,6 +164,11 @@ def home(request):
         'combined_articles': combined_articles,
         'filter_type': request.GET.get('filter', 'unread') if request.user.is_authenticated else 'unread',
         'total_unread': total_unread,
+        'current_page': current_page if request.user.is_authenticated else 1,
+        'has_previous': has_previous if request.user.is_authenticated else False,
+        'has_next': has_next if request.user.is_authenticated else False,
+        'previous_page_number': previous_page_number if request.user.is_authenticated else None,
+        'next_page_number': next_page_number if request.user.is_authenticated else None,
     }
 
     return render(request, 'core/home.html', context)

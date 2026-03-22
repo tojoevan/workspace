@@ -10,12 +10,12 @@
     <div class="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-8 text-white">
         <div class="max-w-2xl">
             <h1 class="text-3xl font-bold mb-3">欢迎来到工作台</h1>
-            <p class="text-primary-100 mb-6">一站式信息阅读与管理平台，订阅RSS、浏览新闻、管理待办、收藏网址</p>
+            <p class="text-base text-primary-100 mb-6">一站式信息阅读与管理平台，订阅 RSS、浏览新闻、管理待办、收藏网址</p>
             <div class="flex gap-3">
-                <a href="{% url 'login' %}" class="inline-flex items-center px-6 py-3 bg-white text-primary-600 rounded-lg font-medium hover:bg-primary-50 transition-colors">
+                <a href="{% url 'login' %}" class="inline-flex items-center px-6 py-3 bg-white text-primary-600 rounded-lg font-medium hover:bg-primary-50 transition-colors text-base">
                     <i class="fas fa-sign-in-alt mr-2"></i>登录
                 </a>
-                <span class="inline-flex items-center px-6 py-3 bg-primary-400/30 text-white rounded-lg">
+                <span class="inline-flex items-center px-6 py-3 bg-primary-400/30 text-white rounded-lg text-base">
                     注册后体验完整功能
                 </span>
             </div>
@@ -32,52 +32,52 @@
                 <div class="px-4 py-3 border-b border-gray-100">
                     <div class="flex items-center justify-between flex-wrap gap-2">
                         <div class="flex items-center space-x-2">
-                            <h2 class="font-semibold text-gray-800">
+                            <h2 class="font-semibold text-gray-800 text-base">
                                 <i class="fas fa-newspaper text-blue-500 mr-2"></i>文章资讯
                             </h2>
                             {% if total_unread > 0 %}
-                            <span class="px-2 py-0.5 text-xs bg-red-100 text-red-600 rounded-full">{{ total_unread }} 未读</span>
+                            <span class="px-2 py-1 text-xs bg-red-100 text-red-600 rounded-full">{{ total_unread }} 未读</span>
                             {% endif %}
                         </div>
                         <div class="flex items-center space-x-2">
                             <!-- 筛选按钮 -->
                             <div class="flex items-center bg-gray-100 rounded-lg p-1">
-                                <a href="?filter=unread" class="px-3 py-1 text-xs rounded-md transition-colors {% if filter_type == 'unread' %}bg-white text-primary-600 shadow-sm{% else %}text-gray-600 hover:text-gray-900{% endif %}">未读</a>
-                                <a href="?filter=starred" class="px-3 py-1 text-xs rounded-md transition-colors {% if filter_type == 'starred' %}bg-white text-primary-600 shadow-sm{% else %}text-gray-600 hover:text-gray-900{% endif %}">
+                                <a href="?filter=unread" class="px-3 py-1.5 text-sm rounded-md transition-colors {% if filter_type == 'unread' %}bg-white text-primary-600 shadow-sm{% else %}text-gray-600 hover:text-gray-900{% endif %}">未读</a>
+                                <a href="?filter=starred" class="px-3 py-1.5 text-sm rounded-md transition-colors {% if filter_type == 'starred' %}bg-white text-primary-600 shadow-sm{% else %}text-gray-600 hover:text-gray-900{% endif %}">
                                     <i class="fas fa-star text-yellow-400"></i> 收藏
                                 </a>
-                                <a href="?filter=read_later" class="px-3 py-1 text-xs rounded-md transition-colors {% if filter_type == 'read_later' %}bg-white text-primary-600 shadow-sm{% else %}text-gray-600 hover:text-gray-900{% endif %}">
+                                <a href="?filter=read_later" class="px-3 py-1.5 text-sm rounded-md transition-colors {% if filter_type == 'read_later' %}bg-white text-primary-600 shadow-sm{% else %}text-gray-600 hover:text-gray-900{% endif %}">
                                     <i class="fas fa-clock text-orange-400"></i> 稍后
                                 </a>
-                                <a href="?filter=all" class="px-3 py-1 text-xs rounded-md transition-colors {% if filter_type == 'all' %}bg-white text-primary-600 shadow-sm{% else %}text-gray-600 hover:text-gray-900{% endif %}">全部</a>
+                                <a href="?filter=all" class="px-3 py-1.5 text-sm rounded-md transition-colors {% if filter_type == 'all' %}bg-white text-primary-600 shadow-sm{% else %}text-gray-600 hover:text-gray-900{% endif %}">全部</a>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="divide-y divide-gray-50">
                     {% for article in combined_articles %}
-                    <div class="px-4 py-1.5 hover:bg-gray-50 transition-colors group {% if article.is_read %}opacity-60{% endif %}">
+                    <div class="px-4 py-1 hover:bg-gray-50 transition-colors group {% if article.is_read %}opacity-60{% endif %}">
                         <div class="flex items-center justify-between">
                             <div class="flex-1 min-w-0 flex items-center">
-                                <span class="px-1.5 py-0.5 text-xs rounded shrink-0 {% if article.type == 'rss' %}bg-orange-100 text-orange-600{% else %}bg-blue-100 text-blue-600{% endif %}">
+                                <span class="px-2 py-1 text-xs rounded shrink-0 {% if article.type == 'rss' %}bg-orange-100 text-orange-600{% else %}bg-blue-100 text-blue-600{% endif %}">
                                     {% if article.type == 'rss' %}RSS{% else %}新闻{% endif %}
                                 </span>
                                 <span class="text-xs text-gray-400 ml-2 shrink-0">{{ article.source }} · {{ article.published_at|date:"m-d H:i" }}</span>
-                                <a href="{{ article.link }}" target="_blank" onclick="markAsRead('{{ article.type }}', {{ article.id }})" class="ml-2 block truncate">
-                                    <span class="text-sm text-gray-800 hover:text-primary-600 transition-colors {% if article.is_read %}line-through{% endif %}">
+                                <a href="{{ article.link }}" target="_blank" onclick="event.preventDefault(); markAsReadAndOpen('{{ article.type }}', {{ article.id }}, '{{ article.link }}')" class="ml-2 block truncate">
+                                    <span class="text-base text-gray-800 hover:text-primary-600 transition-colors {% if article.is_read %}line-through{% endif %}">
                                         {{ article.title }}
                                     </span>
                                 </a>
                             </div>
                             <div class="flex items-center space-x-1 ml-2 shrink-0">
-                                <button onclick="toggleStar('{{ article.type }}', {{ article.id }})" class="p-1 rounded hover:bg-gray-100 transition-colors" title="收藏">
-                                    <i class="fas fa-star text-sm {% if article.is_starred %}text-yellow-400{% else %}text-gray-300{% endif %}"></i>
+                                <button onclick="toggleStar('{{ article.type }}', {{ article.id }})" class="p-2 rounded hover:bg-gray-100 transition-colors" title="收藏">
+                                    <i class="fas fa-star text-base {% if article.is_starred %}text-yellow-400{% else %}text-gray-300{% endif %}"></i>
                                 </button>
-                                <button onclick="toggleReadLater('{{ article.type }}', {{ article.id }})" class="p-1 rounded hover:bg-gray-100 transition-colors" title="稍后阅读">
-                                    <i class="fas fa-clock text-sm {% if article.is_read_later %}text-orange-400{% else %}text-gray-300{% endif %}"></i>
+                                <button onclick="toggleReadLater('{{ article.type }}', {{ article.id }})" class="p-2 rounded hover:bg-gray-100 transition-colors" title="稍后阅读">
+                                    <i class="fas fa-clock text-base {% if article.is_read_later %}text-orange-400{% else %}text-gray-300{% endif %}"></i>
                                 </button>
-                                <a href="{% url 'notes:quick_note' %}?type={{ article.type }}&id={{ article.id }}" class="p-1 rounded hover:bg-gray-100 transition-colors" title="创建笔记">
-                                    <i class="fas fa-sticky-note text-sm text-gray-300 hover:text-green-500"></i>
+                                <a href="{% url 'notes:quick_note' %}?type={{ article.type }}&id={{ article.id }}" class="p-2 rounded hover:bg-gray-100 transition-colors" title="创建笔记">
+                                    <i class="fas fa-sticky-note text-base text-gray-300 hover:text-green-500"></i>
                                 </a>
                             </div>
                         </div>
@@ -85,7 +85,7 @@
                     {% empty %}
                     <div class="px-4 py-8 text-center text-gray-400">
                         <i class="fas fa-inbox text-3xl mb-2"></i>
-                        <p class="text-sm">
+                        <p class="text-base">
                             {% if filter_type == 'starred' %}暂无收藏文章{% elif filter_type == 'read_later' %}暂无稍后阅读文章{% elif filter_type == 'unread' %}没有未读文章{% else %}暂无文章{% endif %}
                         </p>
                     </div>
@@ -93,17 +93,42 @@
                 </div>
                 {% if combined_articles %}
                 <div class="px-4 py-3 border-t border-gray-100 bg-gray-50 rounded-b-xl">
-                    <button onclick="showMarkAllReadModal()" class="w-full py-2 text-sm text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
-                        <i class="fas fa-check-double mr-2"></i>全部标记为已读
-                    </button>
+                    <div class="flex items-center justify-between">
+                        <!-- 上一页 -->
+                        {% if has_previous %}
+                        <a href="?filter={{ filter_type }}&page={{ previous_page_number }}" class="inline-flex items-center px-4 py-2 text-sm text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                            <i class="fas fa-chevron-left mr-2"></i>上一页
+                        </a>
+                        {% else %}
+                        <span class="inline-flex items-center px-4 py-2 text-sm text-gray-400 rounded-lg cursor-not-allowed">
+                            <i class="fas fa-chevron-left mr-2"></i>上一页
+                        </span>
+                        {% endif %}
+                        
+                        <!-- 全部标记为已读 -->
+                        <button onclick="showMarkAllReadModal()" class="inline-flex items-center px-4 py-2 text-sm text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                            <i class="fas fa-check-double mr-2"></i>全部标记为已读
+                        </button>
+                        
+                        <!-- 下一页 -->
+                        {% if has_next %}
+                        <a href="?filter={{ filter_type }}&page={{ next_page_number }}" class="inline-flex items-center px-4 py-2 text-sm text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                            下一页<i class="fas fa-chevron-right ml-2"></i>
+                        </a>
+                        {% else %}
+                        <span class="inline-flex items-center px-4 py-2 text-sm text-gray-400 rounded-lg cursor-not-allowed">
+                            下一页<i class="fas fa-chevron-right ml-2"></i>
+                        </span>
+                        {% endif %}
+                    </div>
                 </div>
                 {% endif %}
             </div>
             {% else %}
-            <!-- 未登录：RSS文章 -->
+            <!-- 未登录：RSS 文章 -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                    <h2 class="font-semibold text-gray-800">
+                    <h2 class="font-semibold text-gray-800 text-base">
                         <i class="fas fa-rss text-orange-500 mr-2"></i>RSS 文章
                     </h2>
                 </div>
@@ -112,7 +137,7 @@
                     <a href="{{ article.link }}" target="_blank" class="block px-4 py-3 hover:bg-gray-50 transition-colors">
                         <div class="flex items-start justify-between">
                             <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-medium text-gray-800 truncate">{{ article.title }}</h3>
+                                <h3 class="text-base font-medium text-gray-800 truncate">{{ article.title }}</h3>
                                 <p class="text-xs text-gray-500 mt-1">{{ article.feed.title }} · {{ article.published_at|date:"m-d H:i" }}</p>
                             </div>
                         </div>
@@ -120,7 +145,7 @@
                     {% empty %}
                     <div class="px-4 py-8 text-center text-gray-400">
                         <i class="fas fa-rss text-3xl mb-2"></i>
-                        <p class="text-sm">暂无RSS文章</p>
+                        <p class="text-base">暂无 RSS 文章</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -133,23 +158,23 @@
             {% if user.is_authenticated %}
             <!-- 快捷入口 -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                <h3 class="text-sm font-semibold text-gray-700 mb-3">快捷入口</h3>
+                <h3 class="text-base font-semibold text-gray-700 mb-3">快捷入口</h3>
                 <div class="grid grid-cols-2 gap-2">
-                    <a href="{% url 'rss:feed_list' %}" class="flex items-center p-2 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors">
-                        <i class="fas fa-rss text-orange-500 mr-2"></i>
-                        <span class="text-xs text-gray-700">RSS订阅</span>
+                    <a href="{% url 'rss:feed_list' %}" class="flex items-center p-3 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors">
+                        <i class="fas fa-rss text-orange-500 mr-2 text-base"></i>
+                        <span class="text-sm text-gray-700">RSS 订阅</span>
                     </a>
-                    <a href="{% url 'notes:note_list' %}" class="flex items-center p-2 rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
-                        <i class="fas fa-sticky-note text-green-500 mr-2"></i>
-                        <span class="text-xs text-gray-700">笔记</span>
+                    <a href="{% url 'notes:note_list' %}" class="flex items-center p-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
+                        <i class="fas fa-sticky-note text-green-500 mr-2 text-base"></i>
+                        <span class="text-sm text-gray-700">笔记</span>
                     </a>
-                    <a href="{% url 'notes:ai_settings' %}" class="flex items-center p-2 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors">
-                        <i class="fas fa-brain text-purple-500 mr-2"></i>
-                        <span class="text-xs text-gray-700">AI配置</span>
+                    <a href="{% url 'notes:ai_settings' %}" class="flex items-center p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors">
+                        <i class="fas fa-brain text-purple-500 mr-2 text-base"></i>
+                        <span class="text-sm text-gray-700">AI 配置</span>
                     </a>
-                    <a href="{% url 'user_profile' %}" class="flex items-center p-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
-                        <i class="fas fa-user text-blue-500 mr-2"></i>
-                        <span class="text-xs text-gray-700">个人</span>
+                    <a href="{% url 'user_profile' %}" class="flex items-center p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                        <i class="fas fa-user text-blue-500 mr-2 text-base"></i>
+                        <span class="text-sm text-gray-700">个人</span>
                     </a>
                 </div>
             </div>
@@ -157,20 +182,20 @@
             <!-- 我的书签 -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                    <h2 class="font-semibold text-gray-800">
+                    <h2 class="font-semibold text-gray-800 text-base">
                         <i class="fas fa-lock text-gray-400 mr-2"></i>我的书签
                     </h2>
                     <a href="{% url 'bookmarks:bookmark_list' %}" class="text-sm text-primary-600 hover:text-primary-700">管理</a>
                 </div>
                 <div class="p-3">
                     {% for bookmark in user_bookmarks %}
-                    <a href="{{ bookmark.url }}" target="_blank" onclick="recordVisit({{ bookmark.pk }})" class="inline-block text-xs text-primary-600 hover:text-primary-700 underline underline-offset-2 mr-3 leading-relaxed">
-                        {{ bookmark.title }}{% if bookmark.is_private %}<i class="fas fa-lock text-gray-300 text-xs ml-0.5" title="隐私"></i>{% endif %}
+                    <a href="{{ bookmark.url }}" target="_blank" onclick="recordVisit({{ bookmark.pk }})" class="inline-block text-sm text-primary-600 hover:text-primary-700 underline underline-offset-2 mr-3 leading-relaxed">
+                        {{ bookmark.title }}{% if bookmark.is_private %}<i class="fas fa-lock text-gray-300 text-sm ml-0.5" title="隐私"></i>{% endif %}
                     </a>
                     {% empty %}
                     <div class="py-4 text-center text-gray-400">
                         <i class="fas fa-bookmark text-lg mb-1"></i>
-                        <p class="text-xs">暂无私有书签</p>
+                        <p class="text-sm">暂无私有书签</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -179,27 +204,27 @@
             <!-- 我的待办 -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                    <h2 class="font-semibold text-gray-800">
+                    <h2 class="font-semibold text-gray-800 text-base">
                         <i class="fas fa-check-circle text-purple-500 mr-2"></i>我的待办
                     </h2>
                     <a href="{% url 'todo:todo_list' %}" class="text-sm text-primary-600 hover:text-primary-700">全部</a>
                 </div>
                 <div class="divide-y divide-gray-50 max-h-48 overflow-y-auto">
                     {% for todo in user_todos %}
-                    <div class="px-4 py-2 flex items-center">
+                    <div class="px-4 py-3 flex items-center">
                         <button onclick="toggleTodo({{ todo.pk }})" class="w-4 h-4 rounded-full border-2 border-gray-300 hover:border-primary-500 mr-2 flex items-center justify-center transition-colors">
                         </button>
                         <a href="{% url 'todo:todo_detail' pk=todo.pk %}" class="flex-1 min-w-0">
-                            <p class="text-xs font-medium text-gray-700 truncate">{{ todo.title }}</p>
+                            <p class="text-sm font-medium text-gray-700 truncate">{{ todo.title }}</p>
                         </a>
                         {% if todo.is_pinned %}
-                        <i class="fas fa-thumbtack text-primary-400 text-xs ml-1"></i>
+                        <i class="fas fa-thumbtack text-primary-400 text-sm ml-1"></i>
                         {% endif %}
                     </div>
                     {% empty %}
                     <div class="px-4 py-4 text-center text-gray-400">
                         <i class="fas fa-check-circle text-lg mb-1"></i>
-                        <p class="text-xs">暂无待办</p>
+                        <p class="text-sm">暂无待办</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -208,28 +233,28 @@
             <!-- 未登录：公开网址导航 -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                    <h2 class="font-semibold text-gray-800">
+                    <h2 class="font-semibold text-gray-800 text-base">
                         <i class="fas fa-bookmark text-teal-500 mr-2"></i>网址导航
                     </h2>
                     <a href="{% url 'bookmarks:bookmark_public' %}" class="text-sm text-primary-600 hover:text-primary-700">更多</a>
                 </div>
-                <div class="p-2 max-h-96 overflow-y-auto">
+                <div class="p-3 max-h-96 overflow-y-auto">
                     {% for bookmark in public_bookmarks %}
-                    <a href="{{ bookmark.url }}" target="_blank" class="flex items-center px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors group">
-                        <div class="w-7 h-7 bg-gradient-to-br from-teal-100 to-blue-100 rounded flex items-center justify-center mr-2 group-hover:from-teal-200 group-hover:to-blue-200">
-                            <i class="fas fa-link text-teal-500 text-xs"></i>
+                    <a href="{{ bookmark.url }}" target="_blank" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors group">
+                        <div class="w-8 h-8 bg-gradient-to-br from-teal-100 to-blue-100 rounded flex items-center justify-center mr-2 group-hover:from-teal-200 group-hover:to-blue-200">
+                            <i class="fas fa-link text-teal-500 text-sm"></i>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-xs font-medium text-gray-700 truncate">{{ bookmark.title }}</p>
+                            <p class="text-sm font-medium text-gray-700 truncate">{{ bookmark.title }}</p>
                         </div>
                         {% if bookmark.is_pinned %}
-                        <i class="fas fa-thumbtack text-primary-400 text-xs ml-1"></i>
+                        <i class="fas fa-thumbtack text-primary-400 text-sm ml-1"></i>
                         {% endif %}
                     </a>
                     {% empty %}
                     <div class="py-4 text-center text-gray-400">
                         <i class="fas fa-bookmark text-lg mb-1"></i>
-                        <p class="text-xs">暂无公开书签</p>
+                        <p class="text-sm">暂无公开书签</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -318,6 +343,26 @@ function toggleReadLater(type, id) {
     .then(data => {
         if (data.success) {
             location.reload();
+        }
+    });
+}
+
+function markAsReadAndOpen(type, id, url) {
+    // 先标记为已读，然后再打开链接
+    fetch('{% url "mark_article_read" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `type=${type}&id=${id}`
+    })
+    .then(response => {
+        if (response.ok) {
+            // 标记成功后打开链接
+            window.open(url, '_blank');
+            // 可选：给一个视觉反馈
+            event.target.style.opacity = '0.6';
         }
     });
 }
