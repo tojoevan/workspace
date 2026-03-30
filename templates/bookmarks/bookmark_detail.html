@@ -1,118 +1,24 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ bookmark.title }} - 书签详情{% endblock %}
-{% block page_title %}书签详情{% endblock %}
+{% block title %}{{ bookmark.title }}{% endblock %}
+
+{% block page_header %}
+<div class="max-w-3xl mx-auto px-6 pt-8 pb-2">
+    <div class="flex items-center justify-between">
+        <a href="{% url 'bookmarks:bookmark_list' %}" class="text-sm text-gray-400 hover:text-gray-600">← 书签</a>
+        <div class="flex gap-2">
+            <a href="{% url 'bookmarks:bookmark_edit' bookmark.pk %}" class="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm">编辑</a>
+            <a href="{% url 'bookmarks:bookmark_delete' bookmark.pk %}" class="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm text-red-500">删除</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <!-- 头部 -->
-        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
-                    {% if bookmark.favicon %}
-                    <img src="{{ bookmark.favicon }}" alt="" class="w-8 h-8 rounded">
-                    {% else %}
-                    <i class="fas fa-link text-gray-400 text-xl"></i>
-                    {% endif %}
-                </div>
-                <div>
-                    <h1 class="text-xl font-semibold text-gray-800 flex items-center">
-                        {{ bookmark.title }}
-                        {% if bookmark.is_pinned %}
-                        <i class="fas fa-thumbtack text-primary-500 ml-2"></i>
-                        {% endif %}
-                    </h1>
-                    <a href="{{ bookmark.url }}" target="_blank" class="text-sm text-primary-600 hover:text-primary-700">
-                        {{ bookmark.url }}
-                    </a>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <a href="{{ bookmark.url }}" target="_blank" class="px-4 py-2 text-sm text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors">
-                    <i class="fas fa-external-link-alt mr-1"></i>访问
-                </a>
-                <a href="{% url 'bookmarks:bookmark_edit' pk=bookmark.pk %}" class="px-4 py-2 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors">
-                    <i class="fas fa-edit mr-1"></i>编辑
-                </a>
-                <a href="{% url 'bookmarks:bookmark_delete' pk=bookmark.pk %}" class="px-4 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                    <i class="fas fa-trash mr-1"></i>删除
-                </a>
-            </div>
-        </div>
-
-        <!-- 内容 -->
-        <div class="p-6 space-y-6">
-            <!-- 状态标签 -->
-            <div class="flex items-center space-x-3">
-                {% if bookmark.is_private %}
-                <span class="text-sm px-3 py-1 rounded-lg bg-gray-100 text-gray-600">
-                    <i class="fas fa-lock mr-1"></i>隐私
-                </span>
-                {% endif %}
-                {% if bookmark.category %}
-                <span class="text-sm px-3 py-1 rounded-lg" style="background-color: {{ bookmark.category.color }}20; color: {{ bookmark.category.color }}">
-                    <i class="{{ bookmark.category.icon }} mr-1"></i>{{ bookmark.category.name }}
-                </span>
-                {% endif %}
-                <span class="text-sm px-3 py-1 rounded-lg bg-blue-50 text-blue-600">
-                    <i class="fas fa-eye mr-1"></i>{{ bookmark.visit_count }}次访问
-                </span>
-            </div>
-
-            <!-- 备注 -->
-            {% if bookmark.description %}
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 mb-2">备注</h3>
-                <p class="text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-xl">{{ bookmark.description }}</p>
-            </div>
-            {% endif %}
-
-            <!-- 来源信息 -->
-            <div class="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                    <span class="text-gray-500">添加者：</span>
-                    <span class="text-gray-700">{{ bookmark.created_by.username }}</span>
-                </div>
-                <div>
-                    <span class="text-gray-500">添加时间：</span>
-                    <span class="text-gray-700">{{ bookmark.created_at|date:"Y-m-d H:i" }}</span>
-                </div>
-                <div>
-                    <span class="text-gray-500">来源类型：</span>
-                    <span class="text-gray-700">
-                        {% if bookmark.source_type == 'manual' %}手动添加
-                        {% elif bookmark.source_type == 'from_todo' %}从待办转换
-                        {% elif bookmark.source_type == 'from_rss' %}从RSS导入
-                        {% else %}{{ bookmark.source_type }}{% endif %}
-                    </span>
-                </div>
-                {% if bookmark.last_visited %}
-                <div>
-                    <span class="text-gray-500">最后访问：</span>
-                    <span class="text-gray-700">{{ bookmark.last_visited|date:"Y-m-d H:i" }}</span>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- 关联待办 -->
-            {% if bookmark.related_todo %}
-            <div class="p-4 bg-purple-50 rounded-xl">
-                <h3 class="text-sm font-medium text-purple-700 mb-2">
-                    <i class="fas fa-check-circle mr-1"></i>关联待办
-                </h3>
-                <a href="{% url 'todo:todo_detail' pk=bookmark.related_todo.pk %}" class="text-purple-600 hover:text-purple-700">
-                    {{ bookmark.related_todo.title }}
-                </a>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <div class="mt-4">
-        <a href="{% url 'bookmarks:bookmark_list' %}" class="text-gray-500 hover:text-gray-700">
-            <i class="fas fa-arrow-left mr-2"></i>返回列表
-        </a>
-    </div>
+<div class="max-w-3xl mx-auto px-6 py-6 space-y-4">
+    <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ bookmark.title }}</h1>
+    <a href="{{ bookmark.url }}" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:underline break-all">{{ bookmark.url }}</a>
+    {% if bookmark.description %}<p class="text-base text-gray-500">{{ bookmark.description }}</p>{% endif %}
+    <div class="text-xs text-gray-400">收藏于 {{ bookmark.created_at|date:"Y-m-d" }} · {{ bookmark.visit_count }} 次访问</div>
 </div>
 {% endblock %}

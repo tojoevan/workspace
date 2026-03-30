@@ -1,218 +1,92 @@
 {% extends 'base.html' %}
 
-{% block title %}用户管理 - 信息工作台{% endblock %}
-{% block page_title %}用户管理{% endblock %}
+{% block title %}用户设置{% endblock %}
 
-{% block content %}
-<div class="max-w-4xl mx-auto">
-    <!-- Profile Header -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-        <div class="bg-gradient-to-r from-primary-500 to-primary-600 px-6 py-8">
-            <div class="flex items-center space-x-4">
-                <div class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-white text-3xl font-bold border-4 border-white/30">
-                    {{ request.user.username|first|upper }}
-                </div>
-                <div class="text-white">
-                    <h2 class="text-2xl font-bold">{{ request.user.username }}</h2>
-                    <p class="text-primary-100">{{ request.user.email|default:"未设置邮箱" }}</p>
-                    <p class="text-sm text-primary-200 mt-1">
-                        <i class="fas fa-calendar-alt mr-1"></i>
-                        注册于 {{ request.user.date_joined|date:"Y年m月d日" }}
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-            <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <i class="fas fa-rss text-orange-600 text-xl"></i>
-            </div>
-            <p class="text-2xl font-bold text-gray-800">{{ stats.rss_feeds }}</p>
-            <p class="text-sm text-gray-500">RSS 订阅</p>
-        </div>
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <i class="fas fa-newspaper text-blue-600 text-xl"></i>
-            </div>
-            <p class="text-2xl font-bold text-gray-800">{{ stats.news_articles }}</p>
-            <p class="text-sm text-gray-500">新闻文章</p>
-        </div>
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <i class="fas fa-sticky-note text-green-600 text-xl"></i>
-            </div>
-            <p class="text-2xl font-bold text-gray-800">{{ stats.notes }}</p>
-            <p class="text-sm text-gray-500">笔记</p>
-        </div>
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <i class="fas fa-file-alt text-purple-600 text-xl"></i>
-            </div>
-            <p class="text-2xl font-bold text-gray-800">{{ stats.rss_articles }}</p>
-            <p class="text-sm text-gray-500">RSS 文章</p>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Profile Info -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div class="p-6 border-b border-gray-100">
-                <h3 class="text-lg font-semibold text-gray-800">
-                    <i class="fas fa-user-circle text-primary-500 mr-2"></i>个人信息
-                </h3>
-            </div>
-            <div class="p-6">
-                <form method="POST" class="space-y-4">
-                    {% csrf_token %}
-                    <input type="hidden" name="form_type" value="profile">
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
-                        <input type="text" value="{{ request.user.username }}" disabled
-                               class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed">
-                        <p class="text-xs text-gray-400 mt-1">用户名不可修改</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            别名
-                            <span class="text-gray-400 font-normal">（可用于登录）</span>
-                        </label>
-                        <div class="relative">
-                            <input type="text" name="alias" id="alias" value="{{ profile.alias|default:'' }}"
-                                   placeholder="设置一个唯一的别名"
-                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all">
-                            <span id="alias-status" class="absolute right-3 top-1/2 -translate-y-1/2 hidden">
-                                <i class="fas fa-check text-green-500"></i>
-                            </span>
-                        </div>
-                        <p id="alias-message" class="text-xs text-gray-400 mt-1">别名长度2-50字符，设置后可用别名登录</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">邮箱地址</label>
-                        <input type="email" name="email" value="{{ request.user.email|default:'' }}"
-                               placeholder="请输入邮箱地址"
-                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all">
-                    </div>
-
-                    <button type="submit"
-                            class="w-full py-3 bg-primary-600 text-white font-medium rounded-xl hover:bg-primary-700 transition-colors">
-                        <i class="fas fa-save mr-2"></i>保存信息
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Password Change -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div class="p-6 border-b border-gray-100">
-                <h3 class="text-lg font-semibold text-gray-800">
-                    <i class="fas fa-lock text-primary-500 mr-2"></i>修改密码
-                </h3>
-            </div>
-            <div class="p-6">
-                <form method="POST" class="space-y-4">
-                    {% csrf_token %}
-                    <input type="hidden" name="form_type" value="password">
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">当前密码</label>
-                        <input type="password" name="old_password" required
-                               placeholder="请输入当前密码"
-                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">新密码</label>
-                        <input type="password" name="new_password1" required
-                               placeholder="请输入新密码"
-                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all">
-                        <p class="text-xs text-gray-400 mt-1">密码至少8个字符，不能全是数字</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">确认新密码</label>
-                        <input type="password" name="new_password2" required
-                               placeholder="请再次输入新密码"
-                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all">
-                    </div>
-
-                    <button type="submit"
-                            class="w-full py-3 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-colors">
-                        <i class="fas fa-key mr-2"></i>修改密码
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Account Actions -->
-    <div class="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">
-            <i class="fas fa-cog text-primary-500 mr-2"></i>账户操作
-        </h3>
-        <div class="flex flex-wrap gap-4">
-            <a href="{% url 'home' %}" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>返回首页
-            </a>
-            <a href="{% url 'logout' %}" class="inline-flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-colors">
-                <i class="fas fa-sign-out-alt mr-2"></i>退出登录
-            </a>
-        </div>
-    </div>
+{% block page_header %}
+<div class="max-w-3xl mx-auto px-6 pt-8 pb-2">
+    <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">用户设置</h1>
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const aliasInput = document.getElementById('alias');
-    const aliasStatus = document.getElementById('alias-status');
-    const aliasMessage = document.getElementById('alias-message');
-    let debounceTimer;
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-4 space-y-8">
 
-    aliasInput.addEventListener('input', function() {
-        clearTimeout(debounceTimer);
-        const alias = this.value.trim();
+    <!-- 基本信息 -->
+    <div class="py-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">基本信息</h2>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs text-gray-400 mb-1.5">用户名</label>
+                <p class="text-base text-gray-800 dark:text-gray-200">{{ user.username }}</p>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1.5">别名（用于登录）</label>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="flex gap-2">
+                        <input type="text" name="alias" value="{{ profile.alias|default:'' }}" placeholder="设置别名后可用别名登录"
+                            class="flex-1 px-4 py-2.5 bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500">
+                        <button type="submit" class="px-4 py-2.5 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-        // Reset status
-        aliasStatus.classList.add('hidden');
-        aliasMessage.className = 'text-xs text-gray-400 mt-1';
+    <!-- OpenAI 设置 -->
+    <div class="py-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">AI 设置</h2>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs text-gray-400 mb-1.5">API 密钥</label>
+                <input type="password" name="openai_api_key" value="{{ profile.openai_api_key|default:'' }}"
+                    placeholder="sk-..." class="w-full px-4 py-2.5 bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1.5">API 地址</label>
+                    <input type="text" name="openai_base_url" value="{{ profile.openai_base_url|default:'' }}"
+                        placeholder="https://api.openai.com/v1" class="w-full px-4 py-2.5 bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1.5">模型</label>
+                    <input type="text" name="openai_model" value="{{ profile.openai_model|default:'gpt-3.5-turbo' }}"
+                        placeholder="gpt-3.5-turbo" class="w-full px-4 py-2.5 bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500">
+                </div>
+            </div>
+            <div>
+                <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                    <input type="checkbox" name="show_quote" value="1" {% if profile.show_quote %}checked{% endif %} class="rounded">
+                    显示每日鸡汤文
+                </label>
+            </div>
+            <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors">保存设置</button>
+        </form>
+    </div>
 
-        if (alias.length < 2) {
-            if (alias.length > 0) {
-                aliasMessage.textContent = '别名长度至少2个字符';
-                aliasMessage.className = 'text-xs text-red-500 mt-1';
-            }
-            return;
-        }
+    <!-- 修改密码 -->
+    <div class="py-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">修改密码</h2>
+        <form method="post" action="{% url 'password_change' %}" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs text-gray-400 mb-1.5">当前密码</label>
+                <input type="password" name="old_password" class="w-full px-4 py-2.5 bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1.5">新密码</label>
+                    <input type="password" name="new_password1" class="w-full px-4 py-2.5 bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1.5">确认新密码</label>
+                    <input type="password" name="new_password2" class="w-full px-4 py-2.5 bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500">
+                </div>
+            </div>
+            <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors">修改密码</button>
+        </form>
+    </div>
 
-        // Debounce the check
-        debounceTimer = setTimeout(function() {
-            fetch(`/user/check-alias/?alias=${encodeURIComponent(alias)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.available) {
-                        aliasStatus.innerHTML = '<i class="fas fa-check text-green-500"></i>';
-                        aliasStatus.classList.remove('hidden');
-                        aliasMessage.textContent = data.message;
-                        aliasMessage.className = 'text-xs text-green-500 mt-1';
-                    } else {
-                        aliasStatus.innerHTML = '<i class="fas fa-times text-red-500"></i>';
-                        aliasStatus.classList.remove('hidden');
-                        aliasMessage.textContent = data.message;
-                        aliasMessage.className = 'text-xs text-red-500 mt-1';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error checking alias:', error);
-                });
-        }, 500);
-    });
-});
-</script>
+</div>
 {% endblock %}

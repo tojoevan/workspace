@@ -1,158 +1,47 @@
 {% extends 'base.html' %}
 
-{% block title %}笔记 - 信息工作台{% endblock %}
-{% block page_title %}笔记{% endblock %}
+{% block title %}笔记{% endblock %}
+
+{% block page_header %}
+<div class="max-w-3xl mx-auto px-6 pt-8 pb-2">
+    <div class="flex items-center justify-between">
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">笔记</h1>
+        <a href="{% url 'notes:note_add' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">+ 新建</a>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-    <div class="flex items-center space-x-4">
-        <!-- Filter -->
-        <select id="filterSelect" onchange="applyFilter()" class="px-4 py-2 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none bg-white">
-            <option value="all" {% if filter_type == 'all' %}selected{% endif %}>全部笔记</option>
-            <option value="pinned" {% if filter_type == 'pinned' %}selected{% endif %}>置顶</option>
-            <option value="archived" {% if filter_type == 'archived' %}selected{% endif %}>归档</option>
-        </select>
-        
-        <!-- Tag Filter -->
-        {% if all_tags %}
-        <select id="tagSelect" onchange="applyFilter()" class="px-4 py-2 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none bg-white">
-            <option value="">所有标签</option>
-            {% for tag in all_tags %}
-            <option value="{{ tag }}" {% if selected_tag == tag %}selected{% endif %}>{{ tag }}</option>
-            {% endfor %}
-        </select>
-        {% endif %}
-        
-        <!-- Search -->
-        <div class="relative">
-            <input type="text" id="searchInput" value="{{ search }}" placeholder="搜索笔记..." 
-                class="pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none w-64">
-            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-        </div>
-    </div>
-    
-    <a href="{% url 'notes:note_add' %}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors">
-        <i class="fas fa-plus mr-2"></i>新建笔记
-    </a>
-</div>
-
-{% if notes %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {% for note in notes %}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
-        <div class="p-6">
-            <div class="flex items-center justify-between mb-3 gap-2">
-                <h3 class="font-semibold text-gray-800 line-clamp-1 flex-1 min-w-0">
-                    <a href="{% url 'notes:note_detail' note.id %}" class="hover:text-green-600 transition-colors">
-                        {% if note.is_pinned %}<i class="fas fa-thumbtack text-primary-500 mr-1"></i>{% endif %}
-                        {% if note.note_type == 'ai' %}<i class="fas fa-robot text-purple-500 mr-1"></i>{% endif %}
-                        {{ note.title }}
-                    </a>
-                </h3>
-                <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                    <button onclick="togglePin({{ note.id }})" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-primary-500">
-                        <i class="fas fa-thumbtack"></i>
-                    </button>
-                    <a href="{% url 'notes:note_edit' note.id %}" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-green-600">
-                        <i class="fas fa-edit"></i>
-                    </a>
-                    <button onclick="toggleArchive({{ note.id }})" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-orange-600">
-                        <i class="fas fa-archive"></i>
-                    </button>
+<div class="max-w-3xl mx-auto px-6">
+    {% if notes %}
+    <div class="divide-y divide-gray-100 dark:divide-gray-800">
+        {% for note in notes %}
+        <div class="py-5 group">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex-1 min-w-0">
+                    <a href="{% url 'notes:note_detail' note.id %}" class="block text-base font-medium text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 {% if note.is_archived %}text-gray-400 line-through{% endif %}">{{ note.title }}</a>
+                    {% if note.content %}
+                    <p class="text-sm text-gray-400 mt-1 line-clamp-2">{{ note.content|striptags|truncatechars:120 }}</p>
+                    {% endif %}
+                    <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                        <span>{{ note.updated_at|date:"Y-m-d H:i" }}</span>
+                        {% if note.is_pinned %}<span class="text-blue-500">📌 已置顶</span>{% endif %}
+                        {% if note.tags %}<span>{{ note.tags }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <a href="{% url 'notes:note_edit' note.id %}" class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><i class="fas fa-pen text-xs"></i></a>
+                    <a href="{% url 'notes:note_delete' note.id %}" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500"><i class="fas fa-trash text-xs"></i></a>
                 </div>
             </div>
-            
-            <p class="text-sm text-gray-600 line-clamp-3 mb-4">{{ note.content|striptags|truncatewords:50 }}</p>
-            
-            <div class="flex items-center justify-between">
-                <div class="flex flex-wrap gap-1">
-                    {% for tag in note.get_tags_list|slice:':3' %}
-                    <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">{{ tag }}</span>
-                    {% endfor %}
-                </div>
-                <span class="text-xs text-gray-400">{{ note.updated_at|timesince }}前</span>
-            </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
-{% else %}
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <i class="fas fa-sticky-note text-green-500 text-3xl"></i>
+    {% else %}
+    <div class="py-20 text-center text-gray-400">
+        <p class="text-base mb-4">暂无笔记</p>
+        <a href="{% url 'notes:note_add' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">+ 新建笔记</a>
     </div>
-    <h3 class="text-xl font-semibold text-gray-800 mb-2">还没有笔记</h3>
-    <p class="text-gray-500 mb-6">创建你的第一个笔记，记录你的想法</p>
-    <a href="{% url 'notes:note_add' %}" class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors">
-        <i class="fas fa-plus mr-2"></i>创建笔记
-    </a>
+    {% endif %}
 </div>
-{% endif %}
-
-<script>
-const CSRF_TOKEN = '{{ csrf_token }}';
-
-function applyFilter() {
-    const filter = document.getElementById('filterSelect').value;
-    const tag = document.getElementById('tagSelect')?.value || '';
-    let url = '?filter=' + filter;
-    if (tag) url += '&tag=' + tag;
-    window.location.href = url;
-}
-
-document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        const search = this.value;
-        window.location.href = '?search=' + encodeURIComponent(search);
-    }
-});
-
-function togglePin(id) {
-    fetch(`/notes/${id}/pin/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': CSRF_TOKEN,
-        },
-        credentials: 'same-origin',
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            console.error('Pin failed:', data);
-        }
-    })
-    .catch(error => console.error('Pin error:', error));
-}
-
-function toggleArchive(id) {
-    fetch(`/notes/${id}/archive/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': CSRF_TOKEN,
-        },
-        credentials: 'same-origin',
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            console.error('Archive failed:', data);
-        }
-    })
-    .catch(error => console.error('Archive error:', error));
-}
-</script>
 {% endblock %}

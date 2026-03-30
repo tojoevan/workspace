@@ -1,109 +1,28 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ article.title }} - 信息工作台{% endblock %}
-{% block page_title %}新闻详情{% endblock %}
+{% block title %}{{ article.title }}{% endblock %}
+
+{% block page_header %}
+<div class="max-w-3xl mx-auto px-6 pt-8 pb-2">
+    <div class="flex items-center gap-3">
+        <a href="{% url 'news:article_list' %}" class="text-sm text-gray-400 hover:text-gray-600">← 新闻</a>
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ article.title }}</h1>
+    </div>
+    <p class="text-xs text-gray-400 mt-1">{% if article.source %}{{ article.source.name }}{% endif %}{% if article.published_at %} · {{ article.published_at|date:"Y-m-d H:i" }}{% endif %}</p>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.article-body { font-family: 'Noto Serif SC', Georgia, serif; font-size: 1.0625rem; line-height: 1.85; color: #1a1a1a; }
+.article-body p { margin: 0.75rem 0; }
+.dark .article-body { color: #e5e5e5; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <!-- Header -->
-        <div class="p-6 border-b border-gray-100">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center space-x-3">
-                    {% if article.source %}
-                    <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold">
-                        {{ article.source.name|first|upper }}
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">{{ article.source.name }}</p>
-                        <p class="text-xs text-gray-400">{{ article.published_at|timesince }}前</p>
-                    </div>
-                    {% else %}
-                    <div class="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-600 rounded-xl flex items-center justify-center text-white font-bold">
-                        N
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">未知来源</p>
-                        <p class="text-xs text-gray-400">{{ article.published_at|timesince }}前</p>
-                    </div>
-                    {% endif %}
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="toggleStar({{ article.id }})" class="p-2 rounded-xl {% if article.is_starred %}bg-yellow-100 text-yellow-600{% else %}bg-gray-100 text-gray-600{% endif %} hover:bg-opacity-80 transition-colors">
-                        <i class="fas fa-star"></i>
-                    </button>
-                    <a href="{% url 'notes:quick_note' %}?type=news&id={{ article.id }}" class="p-2 rounded-xl bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="创建笔记">
-                        <i class="fas fa-sticky-note"></i>
-                    </a>
-                    <a href="{{ article.link }}" target="_blank" class="p-2 rounded-xl bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors" title="阅读原文">
-                        <i class="fas fa-external-link-alt"></i>
-                    </a>
-                </div>
-            </div>
-
-            {% if article.category %}
-            <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full mb-2 inline-block">{{ article.category }}</span>
-            {% endif %}
-
-            <h1 class="text-2xl font-bold text-gray-800">{{ article.title }}</h1>
-
-            {% if article.author %}
-            <p class="text-sm text-gray-500 mt-2">
-                <i class="far fa-user mr-1"></i>作者：{{ article.author }}
-            </p>
-            {% endif %}
-        </div>
-
-        <!-- Featured Image -->
-        {% if article.image_url and 'example.com' not in article.image_url %}
-        <div class="px-6 pt-6">
-            <img src="{{ article.image_url }}" alt="{{ article.title }}" class="w-full h-64 object-cover rounded-xl">
-        </div>
-        {% endif %}
-
-        <!-- Content -->
-        <div class="p-6 prose prose-lg max-w-none">
-            {% if article.content %}
-                {{ article.content|safe|linebreaks }}
-            {% elif article.summary %}
-                <p class="text-gray-600 text-lg leading-relaxed">{{ article.summary }}</p>
-            {% else %}
-                <p class="text-gray-500 italic">暂无内容，请点击"阅读原文"查看完整内容。</p>
-            {% endif %}
-        </div>
-
-        <!-- Footer -->
-        <div class="p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <a href="{% url 'news:article_list' %}" class="text-gray-600 hover:text-gray-800 transition-colors">
-                        <i class="fas fa-arrow-left mr-2"></i>返回列表
-                    </a>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <a href="{{ article.link }}" target="_blank" class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-external-link-alt mr-2"></i>阅读原文
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="max-w-3xl mx-auto px-6 py-6">
+    <div class="article-body">{{ article.content|default:article.description }}</div>
+    {% if article.url %}<div class="mt-8 pt-4 border-t border-gray-100"><a href="{{ article.url }}" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:underline">阅读原文 →</a></div>{% endif %}
 </div>
-
-<script>
-function toggleStar(id) {
-    fetch(`/news/${id}/star/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        }
-    });
-}
-</script>
 {% endblock %}

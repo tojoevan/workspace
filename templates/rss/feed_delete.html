@@ -1,28 +1,20 @@
 {% extends 'base.html' %}
 
-{% block title %}删除订阅源 - {{ feed.title }} - 信息工作台{% endblock %}
-{% block page_title %}删除订阅源{% endblock %}
+{% block title %}删除订阅{% endblock %}
+
+{% block page_header %}
+<div class="max-w-3xl mx-auto px-6 pt-8 pb-2">
+    <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">确认删除</h1>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto">
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
-        </div>
-        
-        <h2 class="text-xl font-bold text-gray-800 mb-2">确认删除订阅源？</h2>
-        <p class="text-gray-600 mb-2">{{ feed.title }}</p>
-        <p class="text-sm text-gray-500 mb-6">此操作将删除该订阅源及其所有文章，无法恢复。</p>
-        
-        <form method="post" class="flex items-center space-x-4">
-            {% csrf_token %}
-            <button type="submit" class="flex-1 py-3 px-4 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors">
-                <i class="fas fa-trash mr-2"></i>确认删除
-            </button>
-            <a href="{% url 'rss:feed_detail' feed.id %}" class="px-6 py-3 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors">
-                取消
-            </a>
-        </form>
-    </div>
+<div class="max-w-3xl mx-auto px-6 py-6 space-y-5">
+    <p class="text-base text-gray-600 dark:text-gray-400">确定删除订阅「<strong class="text-gray-800 dark:text-gray-200">{{ feed.title }}</strong>」吗？该订阅下的所有文章也会被删除。</p>
+    <form method="post" class="flex items-center gap-3">
+        {% csrf_token %}
+        <button type="submit" class="px-5 py-2.5 bg-red-600 text-white text-sm rounded-xl hover:bg-red-700">确认删除</button>
+        <a href="{% url 'rss:feed_list' %}" class="px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-sm rounded-xl text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800">取消</a>
+    </form>
 </div>
 {% endblock %}

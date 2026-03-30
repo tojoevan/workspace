@@ -1,134 +1,29 @@
 {% extends 'base.html' %}
 
-{% block title %}新闻资讯 - 信息工作台{% endblock %}
-{% block page_title %}新闻资讯{% endblock %}
+{% block title %}新闻{% endblock %}
+
+{% block page_header %}
+<div class="max-w-3xl mx-auto px-6 pt-8 pb-2">
+    <div class="flex items-center justify-between">
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">新闻</h1>
+        <a href="{% url 'news:source_add' %}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">+ 添加</a>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-    <div class="flex items-center space-x-4">
-        <!-- Filter Dropdown -->
-        <select id="filterSelect" onchange="applyFilter()" class="px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none bg-white">
-            <option value="all" {% if filter_type == 'all' %}selected{% endif %}>全部文章</option>
-            <option value="unread" {% if filter_type == 'unread' %}selected{% endif %}>未读</option>
-            <option value="starred" {% if filter_type == 'starred' %}selected{% endif %}>收藏</option>
-        </select>
-        
-        <!-- Source Filter -->
-        <select id="sourceSelect" onchange="applyFilter()" class="px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none bg-white">
-            <option value="">所有来源</option>
-            {% for source in sources %}
-            <option value="{{ source.id }}" {% if selected_source == source.id|stringformat:'s' %}selected{% endif %}>{{ source.name }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    
-    <div class="flex items-center space-x-3">
-        <a href="{% url 'news:import_from_api' %}" class="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-colors">
-            <i class="fas fa-cloud-download-alt mr-2"></i>导入
-        </a>
-        <a href="{% url 'news:source_add' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
-            <i class="fas fa-plus mr-2"></i>添加来源
-        </a>
-    </div>
-</div>
-
-{% if articles %}
-<div class="space-y-4">
-    {% for article in articles %}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow p-6">
-        <div class="flex items-start space-x-4">
-            {% if article.image_url and 'example.com' not in article.image_url %}
-            <img src="{{ article.image_url }}" alt="" class="w-32 h-24 object-cover rounded-xl flex-shrink-0">
-            {% else %}
-            <div class="w-32 h-24 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-newspaper text-blue-500 text-2xl"></i>
-            </div>
-            {% endif %}
-            
-            <div class="flex-1 min-w-0">
-                <div class="flex items-center space-x-2 mb-2">
-                    {% if article.source %}
-                    <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">{{ article.source.name }}</span>
-                    {% endif %}
-                    {% if article.category %}
-                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">{{ article.category }}</span>
-                    {% endif %}
-                    <span class="text-xs text-gray-400">{{ article.published_at|timesince }}前</span>
-                    {% if not article.is_read %}
-                    <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">未读</span>
-                    {% endif %}
-                </div>
-                
-                <h3 class="font-semibold text-gray-800 mb-2 hover:text-blue-600 transition-colors">
-                    <a href="{% url 'news:article_detail' article.id %}">{{ article.title }}</a>
-                </h3>
-                
-                <p class="text-sm text-gray-600 line-clamp-2 mb-3">{{ article.summary|truncatewords:40 }}</p>
-                
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4 text-sm text-gray-500">
-                        {% if article.author %}
-                        <span><i class="far fa-user mr-1"></i>{{ article.author }}</span>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="flex items-center space-x-2">
-                        <button onclick="toggleStar({{ article.id }})" class="p-2 rounded-lg hover:bg-gray-100 transition-colors {% if article.is_starred %}text-yellow-500{% else %}text-gray-400{% endif %}">
-                            <i class="fas fa-star"></i>
-                        </button>
-                        <a href="{% url 'notes:quick_note' %}?type=news&id={{ article.id }}" class="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-green-600" title="创建笔记">
-                            <i class="fas fa-sticky-note"></i>
-                        </a>
-                        <a href="{{ article.link }}" target="_blank" class="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-blue-600" title="阅读原文">
-                            <i class="fas fa-external-link-alt"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
+<div class="max-w-3xl mx-auto px-6">
+    {% if articles %}
+    <div class="divide-y divide-gray-100 dark:divide-gray-800">
+        {% for article in articles %}
+        <div class="py-4">
+            <a href="{% url 'news:article_detail' article.id %}" class="block text-base text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">{{ article.title }}</a>
+            <p class="text-xs text-gray-400 mt-1">{% if article.published_at %}{{ article.published_at|date:"Y-m-d H:i" }}{% endif %}</p>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
+    {% else %}
+    <div class="py-20 text-center text-gray-400"><p class="text-base">暂无新闻</p></div>
+    {% endif %}
 </div>
-{% else %}
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <i class="fas fa-newspaper text-blue-500 text-3xl"></i>
-    </div>
-    <h3 class="text-xl font-semibold text-gray-800 mb-2">还没有新闻文章</h3>
-    <p class="text-gray-500 mb-6">添加新闻来源或从 API 导入新闻</p>
-    <div class="flex items-center justify-center space-x-4">
-        <a href="{% url 'news:source_add' %}" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
-            <i class="fas fa-plus mr-2"></i>添加新闻源
-        </a>
-        <a href="{% url 'news:import_from_api' %}" class="inline-flex items-center px-6 py-3 border border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-colors">
-            <i class="fas fa-cloud-download-alt mr-2"></i>从 API 导入
-        </a>
-    </div>
-</div>
-{% endif %}
-
-<script>
-function applyFilter() {
-    const filter = document.getElementById('filterSelect').value;
-    const source = document.getElementById('sourceSelect').value;
-    let url = '?filter=' + filter;
-    if (source) url += '&source=' + source;
-    window.location.href = url;
-}
-
-function toggleStar(id) {
-    fetch(`/news/${id}/star/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        }
-    });
-}
-</script>
 {% endblock %}
