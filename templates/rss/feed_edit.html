@@ -1,52 +1,32 @@
 {% extends 'base.html' %}
 
-{% block title %}编辑订阅源 - {{ feed.title }} - 信息工作台{% endblock %}
-{% block page_title %}编辑订阅源{% endblock %}
+{% block title %}编辑订阅{% endblock %}
+
+{% block page_header %}
+<div class="max-w-3xl mx-auto px-6 pt-8 pb-2">
+    <div class="flex items-center gap-3">
+        <a href="{% url 'rss:feed_detail' feed.id %}" class="text-sm text-gray-400 hover:text-gray-600">← {{ feed.title }}</a>
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">编辑订阅</h1>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div class="p-6 border-b border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-800">编辑 RSS 订阅源</h2>
-            <p class="text-sm text-gray-500 mt-1">修改订阅源信息</p>
+<div class="max-w-3xl mx-auto px-6 py-6">
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <input type="url" name="url" value="{{ feed.url }}" required placeholder="RSS 地址"
+                class="w-full px-4 py-3 bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-700 rounded-xl text-base text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-blue-500">
         </div>
-        
-        <form method="post" class="p-6 space-y-6">
-            {% csrf_token %}
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">订阅源名称</label>
-                <input type="text" name="title" value="{{ feed.title }}" required
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all outline-none">
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">描述</label>
-                <textarea name="description" rows="3"
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all outline-none resize-none">{{ feed.description }}</textarea>
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">RSS 链接</label>
-                <input type="url" value="{{ feed.url }}" disabled
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed">
-                <p class="text-xs text-gray-500 mt-2">RSS 链接不可修改</p>
-            </div>
-            
-            <div class="flex items-center space-x-3">
-                <input type="checkbox" name="is_active" id="is_active" {% if feed.is_active %}checked{% endif %} class="w-5 h-5 text-orange-600 rounded border-gray-300 focus:ring-orange-500">
-                <label for="is_active" class="text-gray-700">启用订阅源</label>
-            </div>
-            
-            <div class="flex items-center space-x-4 pt-4">
-                <button type="submit" class="flex-1 py-3 px-4 bg-orange-600 text-white font-medium rounded-xl hover:bg-orange-700 transition-colors">
-                    <i class="fas fa-save mr-2"></i>保存修改
-                </button>
-                <a href="{% url 'rss:feed_detail' feed.id %}" class="px-6 py-3 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors">
-                    取消
-                </a>
-            </div>
-        </form>
-    </div>
+        <div>
+            <input type="text" name="title" value="{{ feed.title }}" placeholder="标题"
+                class="w-full px-4 py-2.5 bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-blue-500">
+        </div>
+        <div class="flex items-center gap-3 pt-2">
+            <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700">保存</button>
+            <a href="{% url 'rss:feed_list' %}" class="px-5 py-2.5 border border-gray-200 dark:border-gray-700 text-sm rounded-xl text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800">取消</a>
+        </div>
+    </form>
 </div>
 {% endblock %}
