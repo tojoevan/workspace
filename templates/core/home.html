@@ -90,7 +90,7 @@
     <div class="space-y-1">
         {% for todo in user_todos %}
         <div class="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-800">
-            <form action="{% url 'todo:todo_toggle' todo.id %}" method="post">
+            <form action="{% url 'todo:todo_toggle_complete' todo.id %}" method="post">
                 {% csrf_token %}
                 <button type="submit" class="w-4 h-4 rounded border border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all flex items-center justify-center flex-shrink-0"></button>
             </form>
