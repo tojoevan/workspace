@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'core/base_minimal.html' %}
 
 {% block title %}{% if user.is_authenticated %}工作台{% else %}欢迎{% endif %}{% endblock %}
 {% block page_title %}{% endblock %}
@@ -205,41 +205,4 @@
                     <span class="ml-auto text-xs text-gray-300 group-hover:text-gray-400">新建</span>
                 </a>
             </div>
-            <!-- 底部 -->
-            <div class="p-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                <span class="text-xs text-gray-400">按 <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] font-mono">Esc</kbd> 关闭</span>
-                <a href="{% url 'logout' %}" class="text-xs text-gray-400 hover:text-red-500 transition-colors">退出登录</a>
-            </div>
-        </div>
-    </div>
-</div>
 
-{% endblock %}
-
-{% block extra_js %}
-<script>
-function openCtrlK() {
-    document.getElementById('ctrlk-overlay').classList.add('active');
-    setTimeout(() => document.getElementById('ctrlk-search')?.focus(), 50);
-}
-function closeCtrlK() {
-    document.getElementById('ctrlk-overlay').classList.remove('active');
-}
-// Ctrl+K 快捷键
-document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        openCtrlK();
-    }
-    if (e.key === 'Escape') closeCtrlK();
-});
-// 搜索过滤
-document.getElementById('ctrlk-search')?.addEventListener('input', function() {
-    var q = this.value.toLowerCase();
-    document.querySelectorAll('#ctrlk-panel .space-y-2 > a, #ctrlk-panel .p-2 > a').forEach(function(el) {
-        var text = el.textContent.toLowerCase();
-        el.style.display = text.includes(q) ? '' : 'none';
-    });
-});
-</script>
-{% endblock %}

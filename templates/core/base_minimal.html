@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}工作台{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe',
+                            300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6',
+                            600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', 'Noto Sans SC', sans-serif; }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased dark:bg-[#0a0a0a] dark:text-gray-100">
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="max-w-3xl mx-auto px-6 pt-4">
+        {% for message in messages %}
+        <div class="mb-3 px-4 py-3 rounded-xl {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800{% else %}bg-blue-100 text-blue-800{% endif %} text-sm">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main content (no sidebar) -->
+    <main class="min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Ctrl+K overlay (shared) -->
+    {% block ctrlk %}{% endblock %}
+
+    <!-- Ctrl+K overlay - shared include -->
+    <div id="ctrlk-overlay" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden" onclick="closeCtrlK()">
+        <div class="flex items-start justify-center pt-20 px-4" onclick="event.stopPropagation()">
+            <div id="ctrlk-panel" class="w-full max-w-md bg-white dark:bg-[#161616] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="p-3 border-b border-gray-100 dark:border-gray-800">
+                    <input type="text" id="ctrlk-search" placeholder="搜索或选择..." autofocus
+                        class="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#0f0f0f] rounded-xl text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none">
+                </div>
+                <div class="p-2 max-h-72 overflow-y-auto">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'todo:todo_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <span class="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center text-sm">✅</span>
+                        <div><p class="text-sm font-medium text-gray-800 dark:text-gray-200">待办事项</p><p class="text-xs text-gray-400">查看和管理任务</p></div>
+                    </a>
+                    <a href="{% url 'notes:note_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <span class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center text-sm">📝</span>
+                        <div><p class="text-sm font-medium text-gray-800 dark:text-gray-200">笔记</p><p class="text-xs text-gray-400">阅读和写作</p></div>
+                    </a>
+                    <a href="{% url 'rss:feed_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <span class="w-8 h-8 bg-orange-100 dark:bg-orange-900/40 rounded-lg flex items-center justify-center text-sm">📥</span>
+                        <div><p class="text-sm font-medium text-gray-800 dark:text-gray-200">收件箱</p><p class="text-xs text-gray-400">RSS 订阅和新闻</p></div>
+                    </a>
+                    <a href="{% url 'bookmarks:bookmark_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <span class="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center text-sm">🔖</span>
+                        <div><p class="text-sm font-medium text-gray-800 dark:text-gray-200">书签</p><p class="text-xs text-gray-400">收藏的网址</p></div>
+                    </a>
+                    <a href="{% url 'notes:note_add' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <span class="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-sm">✏️</span>
+                        <div><p class="text-sm font-medium text-gray-800 dark:text-gray-200">新建笔记</p><p class="text-xs text-gray-400">开始写作</p></div>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <span class="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center text-sm">🔑</span>
+                        <div><p class="text-sm font-medium text-gray-800 dark:text-gray-200">登录</p><p class="text-xs text-gray-400">登录后使用全部功能</p></div>
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="p-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                    <span class="text-xs text-gray-400">按 <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] font-mono">Esc</kbd> 关闭</span>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}" class="text-xs text-gray-400 hover:text-red-500 transition-colors">退出登录</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function openCtrlK() {
+        var el = document.getElementById('ctrlk-overlay');
+        if (el) { el.classList.remove('hidden'); setTimeout(function(){ var s = document.getElementById('ctrlk-search'); if(s) s.focus(); }, 50); }
+    }
+    function closeCtrlK() {
+        var el = document.getElementById('ctrlk-overlay');
+        if (el) el.classList.add('hidden');
+    }
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openCtrlK(); }
+        if (e.key === 'Escape') closeCtrlK();
+    });
+    document.getElementById('ctrlk-search') && document.getElementById('ctrlk-search').addEventListener('input', function() {
+        var q = this.value.toLowerCase();
+        document.querySelectorAll('#ctrlk-panel a').forEach(function(el) {
+            el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+    });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
