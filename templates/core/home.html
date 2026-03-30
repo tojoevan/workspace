@@ -120,7 +120,7 @@
             <div class="flex-1 min-w-0">
                 <p class="text-sm text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">{{ article.title }}</p>
             </div>
-            <span class="text-xs text-gray-400 flex-shrink-0">{% if article.published_at %}{{ article.published_at|timesince:"现在" }}{% endif %}</span>
+            <span class="text-xs text-gray-400 flex-shrink-0">{% if article.published_at %}{{ article.published_at|timesince }}{% endif %}</span>
         </a>
         {% empty %}
         <p class="text-sm text-gray-400 py-2">暂无文章，<a href="{% url 'rss:feed_add' %}" class="text-blue-500 hover:underline">添加订阅</a></p>
