@@ -20,7 +20,7 @@
                     <textarea name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all resize-none" placeholder="输入详细描述（可选）">{% if todo %}{{ todo.description }}{% endif %}</textarea>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">优先级</label>
                         <select name="priority" class="w-full h-12 px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all">
@@ -30,7 +30,14 @@
                         </select>
                     </div>
 
-                    {% if todo %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">截止时间</label>
+                        <input type="datetime-local" name="due_date" value="{% if todo and todo.due_date %}{{ todo.due_date|date:'Y-m-d\TH:i' }}{% endif %}" class="w-full h-12 px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all">
+                    </div>
+                </div>
+
+                {% if todo %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">状态</label>
                         <select name="status" class="w-full h-12 px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all">
@@ -39,13 +46,31 @@
                             <option value="completed" {% if todo.status == 'completed' %}selected{% endif %}>已完成</option>
                         </select>
                     </div>
-                    {% endif %}
-
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">截止时间</label>
-                        <input type="datetime-local" name="due_date" value="{% if todo and todo.due_date %}{{ todo.due_date|date:'Y-m-d\TH:i' }}{% endif %}" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">重复</label>
+                        <select name="recurrence_type" class="w-full h-12 px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all">
+                            <option value="none" {% if not todo.is_recurring or todo.recurrence_type == 'none' %}selected{% endif %}>不重复</option>
+                            <option value="daily" {% if todo.is_recurring and todo.recurrence_type == 'daily' %}selected{% endif %}>每天</option>
+                            <option value="weekly" {% if todo.is_recurring and todo.recurrence_type == 'weekly' %}selected{% endif %}>每周</option>
+                            <option value="monthly" {% if todo.is_recurring and todo.recurrence_type == 'monthly' %}selected{% endif %}>每月</option>
+                            <option value="weekdays" {% if todo.is_recurring and todo.recurrence_type == 'weekdays' %}selected{% endif %}>每个工作日</option>
+                        </select>
                     </div>
                 </div>
+                {% else %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">重复</label>
+                        <select name="recurrence_type" class="w-full h-12 px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all">
+                            <option value="none">不重复</option>
+                            <option value="daily">每天</option>
+                            <option value="weekly">每周</option>
+                            <option value="monthly">每月</option>
+                            <option value="weekdays">每个工作日</option>
+                        </select>
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-100">
                     <a href="{% url 'todo:todo_list' %}" class="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors">取消</a>

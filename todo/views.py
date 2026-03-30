@@ -50,6 +50,9 @@ def todo_add(request):
             description=description,
             priority=priority,
             due_date=due_date if due_date else None,
+            is_recurring=request.POST.get('recurrence_type', 'none') != 'none',
+            recurrence_type=request.POST.get('recurrence_type', 'none'),
+            next_due_at=due_date if due_date else None,
         )
         messages.success(request, '待办已创建')
         return redirect('todo:todo_detail', pk=todo.pk)
@@ -105,6 +108,10 @@ def todo_edit(request, pk):
         todo.status = request.POST.get('status', 'pending')
         due_date = request.POST.get('due_date')
         todo.due_date = due_date if due_date else None
+        recurrence_type = request.POST.get('recurrence_type', 'none')
+        todo.is_recurring = recurrence_type != 'none'
+        todo.recurrence_type = recurrence_type
+        todo.next_due_at = due_date if due_date else None
 
         if todo.status == 'completed' and not todo.completed_at:
             todo.completed_at = timezone.now()
@@ -141,6 +148,12 @@ def todo_toggle_complete(request, pk):
     else:
         todo.status = 'completed'
         todo.completed_at = timezone.now()
+        # 记录完成任务活动
+        try:
+            from core.models import ActivityRecord
+            ActivityRecord.record(request.user, 'task_done')
+        except Exception:
+            pass
 
     todo.save()
 

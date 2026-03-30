@@ -3,7 +3,7 @@ Django==5.2.11
 gunicorn==21.2.0
 python-dotenv==1.2.1
 
-# 数据库 (生产环境使用 PostgreSQL)
+# 数据库 (开发用 SQLite，生产用 PostgreSQL)
 psycopg2-binary==2.9.9
 
 # RSS 解析
@@ -18,3 +18,8 @@ openai==2.16.0
 
 # 其他依赖
 pydantic==2.12.5
+
+# Phase 1 新增
+trafilatura>=1.0
+apscheduler>=3.10
+python-dateutil>=2.8

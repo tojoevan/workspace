@@ -36,6 +36,12 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
+            # 记录登录活动
+            try:
+                from core.models import ActivityRecord
+                ActivityRecord.record(user, 'login')
+            except Exception:
+                pass
             return redirect('home')
         else:
             messages.error(request, '用户名/别名或密码错误')
