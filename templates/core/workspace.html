@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe',
+                            300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6',
+                            600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif; margin: 0; }
+        .col-scroll { height: calc(100vh - 56px); overflow-y: auto; scrollbar-width: thin; }
+        .col-scroll::-webkit-scrollbar { width: 4px; }
+        .col-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+        .item-read { opacity: 0.45; }
+        .item-active { background: #eff6ff; }
+        .dark .item-active { background: #1e3a8a30; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased dark:bg-[#0a0a0a] dark:text-gray-100">
+
+<!-- ====== 顶栏 ====== -->
+<header class="sticky top-0 z-20 bg-gray-50 dark:bg-[#0a0a0a] border-b border-gray-200 dark:border-gray-800 h-14 flex items-center justify-between px-6">
+    <div class="flex items-center gap-6">
+        <a href="/" class="text-xl font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors leading-none">工作台</a>
+        <nav class="hidden lg:flex items-center gap-4 text-sm text-gray-400">
+            <a href="{% url 'todo:todo_list' %}" class="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">待办</a>
+            <a href="{% url 'notes:note_list' %}" class="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">笔记</a>
+            <a href="{% url 'rss:feed_list' %}" class="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">收件箱</a>
+            <a href="{% url 'bookmarks:bookmark_list' %}" class="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">书签</a>
+        </nav>
+    </div>
+    <div class="flex items-center gap-2">
+        <a href="{% url 'user_profile' %}" class="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">{{ user.username|slice:":1"|upper }}</a>
+        <button onclick="toggleMobileNav()" class="lg:hidden p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+    </div>
+</header>
+
+<!-- ====== 三栏主体 ====== -->
+<div class="flex" style="height: calc(100vh - 56px);">
+
+    <!-- ====== 左栏：待办 ====== -->
+    <aside class="w-72 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 flex flex-col">
+        <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
+            <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400">待办</h2>
+            <a href="{% url 'todo:todo_add' %}" class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400">+ 新建</a>
+        </div>
+
+        <!-- 今日统计 -->
+        <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
+            <p class="text-xs text-gray-400">今日 <span class="text-gray-700 dark:text-gray-200 font-medium">{{ today_count }}</span> 项待处理</p>
+        </div>
+
+        <!-- 待办列表 -->
+        <div class="col-scroll flex-1 px-2 py-2">
+            {% for todo in pending_todos %}
+            <div class="flex items-start gap-2 px-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 group" data-todo-id="{{ todo.pk }}">
+                <form action="{% url 'todo:todo_toggle_complete' todo.pk %}" method="post" class="flex-shrink-0 mt-0.5">
+                    {% csrf_token %}
+                    <button type="submit" class="w-4 h-4 rounded-full border-2 {% if todo.status == 'completed' %}bg-green-500 border-green-500{% else %}border-gray-300 dark:border-gray-600 hover:border-blue-500{% endif %} flex items-center justify-center transition-all">
+                        {% if todo.status == 'completed' %}<i class="fas fa-check text-white text-[8px]"></i>{% endif %}
+                    </button>
+                </form>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm text-gray-800 dark:text-gray-200 {% if todo.status == 'completed' %}line-through text-gray-400{% endif %}">{{ todo.title }}</p>
+                    {% if todo.due_date %}
+                    <p class="text-xs text-gray-400 mt-0.5">{{ todo.due_date|date:"m-d H:i" }}</p>
+                    {% endif %}
+                </div>
+                {% if todo.is_recurring %}<span class="text-[10px] text-gray-400 flex-shrink-0">🔄</span>{% endif %}
+            </div>
+            {% empty %}
+            <p class="text-xs text-gray-400 text-center py-8">暂无待办</p>
+            {% endfor %}
+
+            {% if in_progress_todos %}
+            <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <p class="text-xs text-gray-400 px-2 mb-2">进行中</p>
+                {% for todo in in_progress_todos %}
+                <div class="flex items-start gap-2 px-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <form action="{% url 'todo:todo_toggle_complete' todo.pk %}" method="post" class="flex-shrink-0 mt-0.5">
+                        {% csrf_token %}
+                        <button type="submit" class="w-4 h-4 rounded-full border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center transition-all"></button>
+                    </form>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-gray-800 dark:text-gray-200">{{ todo.title }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </aside>
+
+    <!-- ====== 中栏：收件箱 ====== -->
+    <main class="flex-1 min-w-0 flex flex-col">
+        <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400">收件箱</h2>
+                <span class="text-xs text-gray-400">{{ total_articles }} 篇</span>
+            </div>
+            <div class="flex items-center gap-1 text-xs">
+                <a href="?filter=unread" class="px-2 py-1 rounded {% if filter_type == 'unread' %}bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300{% else %}text-gray-400 hover:text-gray-600{% endif %}">未读</a>
+                <a href="?filter=starred" class="px-2 py-1 rounded {% if filter_type == 'starred' %}bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300{% else %}text-gray-400 hover:text-gray-600{% endif %}">收藏</a>
+                <a href="?filter=read_later" class="px-2 py-1 rounded {% if filter_type == 'read_later' %}bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300{% else %}text-gray-400 hover:text-gray-600{% endif %}">稍后读</a>
+                <a href="?filter=all" class="px-2 py-1 rounded {% if filter_type == 'all' %}bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300{% else %}text-gray-400 hover:text-gray-600{% endif %}">全部</a>
+            </div>
+        </div>
+
+        <div class="col-scroll flex-1 px-4 py-3 space-y-0.5">
+            {% for article in articles %}
+            <div class="flex items-start gap-3 px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 group article-item {% if article.is_read %}item-read{% endif %}" data-type="{{ article.type }}" data-id="{{ article.id }}">
+                <!-- 来源标签 -->
+                <span class="flex-shrink-0 text-[10px] text-gray-400 mt-0.5 w-10 text-right">{{ article.source|slice:":4" }}</span>
+                <!-- 内容 -->
+                <div class="flex-1 min-w-0">
+                    <a href="{{ article.link }}" target="_blank" rel="noopener" class="block text-sm text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 truncate">{{ article.title }}</a>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-xs text-gray-400">{% if article.published_at %}{{ article.published_at|date:"m-d H:i" }}{% endif %}</span>
+                        <!-- 操作按钮（hover 显示） -->
+                        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="toggleStar('{{ article.type }}', {{ article.id }})" class="p-0.5 text-gray-400 hover:text-yellow-500 transition-colors" title="收藏">
+                                <i class="fas fa-star text-[10px] {% if article.is_starred %}text-yellow-400{% endif %}"></i>
+                            </button>
+                            <button onclick="toggleReadLater('{{ article.type }}', {{ article.id }})" class="p-0.5 text-gray-400 hover:text-blue-500 transition-colors" title="稍后读">
+                                <i class="far fa-bookmark text-[10px] {% if article.is_read_later %}text-blue-500{% endif %}"></i>
+                            </button>
+                            <button onclick="markRead('{{ article.type }}', {{ article.id }})" class="p-0.5 text-gray-400 hover:text-green-500 transition-colors" title="标记已读">
+                                <i class="fas fa-check text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-16 text-gray-400">
+                <p class="text-sm">暂无文章</p>
+                <a href="{% url 'rss:feed_add' %}" class="text-xs text-blue-500 hover:underline mt-2 inline-block">+ 添加订阅</a>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <!-- ====== 右栏：笔记 ====== -->
+    <aside class="w-72 flex-shrink-0 border-l border-gray-200 dark:border-gray-800 flex flex-col">
+        <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
+            <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400">笔记</h2>
+            <a href="{% url 'notes:note_add' %}" class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400">+ 新建</a>
+        </div>
+
+        <!-- 快速记录 -->
+        <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
+            <form action="{% url 'notes:note_add' %}" method="get">
+                <input type="text" name="title" placeholder="快速记录..." maxlength="100"
+                    class="w-full px-3 py-2 text-sm bg-white dark:bg-[#161616] border border-gray-200 dark:border-gray-700 rounded-lg text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-blue-500 text-xs">
+            </form>
+        </div>
+
+        <!-- 笔记列表 -->
+        <div class="col-scroll flex-1 px-3 py-2 space-y-0.5">
+            {% for note in recent_notes %}
+            <a href="{% url 'notes:note_detail' note.id %}" class="block px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 group">
+                <p class="text-sm text-gray-800 dark:text-gray-200 font-medium truncate">{{ note.title }}</p>
+                <p class="text-xs text-gray-400 mt-0.5 truncate">{{ note.updated_at|date:"m-d H:i" }}{% if note.tags %} · {{ note.tags }}{% endif %}</p>
+            </a>
+            {% empty %}
+            <p class="text-xs text-gray-400 text-center py-8">暂无笔记</p>
+            {% endfor %}
+        </div>
+    </aside>
+
+</div>
+
+<!-- ====== 底部固定栏 ====== -->
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-5 py-2.5 bg-white/95 dark:bg-[#161616]/95 border border-gray-200 dark:border-gray-700 rounded-full shadow-sm backdrop-blur-sm z-40">
+    {% if daily_quote %}
+    <span class="text-xs text-gray-400 dark:text-gray-500 max-w-[160px] truncate hidden sm:block">{{ daily_quote }}</span>
+    {% endif %}
+    <button onclick="openCtrlK()" class="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+        <kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] font-mono">Ctrl</kbd>
+        <kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] font-mono">K</kbd>
+        <span class="ml-1">快捷操作</span>
+    </button>
+</div>
+
+<!-- ====== Ctrl+K 面板 ====== -->
+<div id="ctrlk-overlay" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden" onclick="closeCtrlK()">
+    <div class="flex items-start justify-center pt-20 px-4" onclick="event.stopPropagation()">
+        <div class="w-full max-w-md bg-white dark:bg-[#161616] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="p-3 border-b border-gray-100 dark:border-gray-800">
+                <input type="text" id="ctrlk-search" placeholder="搜索或选择操作..." autofocus class="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#0f0f0f] rounded-xl text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none">
+            </div>
+            <div class="p-2 max-h-72 overflow-y-auto">
+                <a href="{% url 'workspace_short' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"><span class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg flex items-center justify-center text-sm">📊</span><div><p class="text-sm font-medium text-gray-800 dark:text-gray-200">工作台</p><p class="text-xs text-gray-400">三栏视图</p></div></a>
+                <a href="{% url 'todo:todo_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"><span class="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center text-sm">✅</span><div><p class="text-sm font-medium text-gray-800 dark:text-gray-200">待办事项</p><p class="text-xs text-gray-400">{{ today_count }} 项待处理</p></div></a>
+                <a href="{% url 'notes:note_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"><span class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center text-sm">📝</span><div><p class="text-sm font-medium text-gray-800 dark:text-gray-200">笔记</p><p class="text-xs text-gray-400">阅读和写作</p></div></a>
+                <a href="{% url 'rss:feed_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"><span class="w-8 h-8 bg-orange-100 dark:bg-orange-900/40 rounded-lg flex items-center justify-center text-sm">📥</span><div><p class="text-sm font-medium text-gray-800 dark:text-gray-200">收件箱</p><p class="text-xs text-gray-400">{{ total_articles }} 篇文章</p></div></a>
+                <a href="{% url 'bookmarks:bookmark_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"><span class="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center text-sm">🔖</span><div><p class="text-sm font-medium text-gray-800 dark:text-gray-200">书签</p><p class="text-xs text-gray-400">收藏的网址</p></div></a>
+                <a href="{% url 'notes:note_add' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"><span class="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-sm">✏️</span><div><p class="text-sm font-medium text-gray-800 dark:text-gray-200">新建笔记</p><p class="text-xs text-gray-400">开始写作</p></div></a>
+                <a href="{% url 'logout' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><span class="w-8 h-8 bg-red-100 dark:bg-red-900/40 rounded-lg flex items-center justify-center text-sm">🚪</span><div><p class="text-sm font-medium text-red-500">退出登录</p></div></a>
+            </div>
+            <div class="p-3 border-t border-gray-100 dark:border-gray-800">
+                <span class="text-xs text-gray-400">按 <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] font-mono">Esc</kbd> 关闭</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleMobileNav() {}
+function openCtrlK() {
+    var el = document.getElementById('ctrlk-overlay');
+    if (el) { el.classList.remove('hidden'); setTimeout(function(){ var s = document.getElementById('ctrlk-search'); if(s) s.focus(); }, 50); }
+}
+function closeCtrlK() {
+    var el = document.getElementById('ctrlk-overlay');
+    if (el) el.classList.add('hidden');
+}
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openCtrlK(); }
+    if (e.key === 'Escape') closeCtrlK();
+});
+var searchInput = document.getElementById('ctrlk-search');
+if (searchInput) {
+    searchInput.addEventListener('input', function() {
+        var q = this.value.toLowerCase();
+        document.querySelectorAll('#ctrlk-overlay a').forEach(function(el) {
+            el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+    });
+}
+
+function getCsrf() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+function toggleStar(type, id) {
+    fetch('/article/toggle-star/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCsrf(), 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'type=' + type + '&id=' + id
+    }).then(function(r) { return r.json(); })
+      .then(function(d) {
+          if (d.success) location.reload();
+      });
+}
+
+function toggleReadLater(type, id) {
+    fetch('/article/toggle-read-later/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCsrf(), 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'type=' + type + '&id=' + id
+    }).then(function(r) { return r.json(); })
+      .then(function(d) {
+          if (d.success) location.reload();
+      });
+}
+
+function markRead(type, id) {
+    fetch('/article/mark-read/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCsrf(), 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'type=' + type + '&id=' + id
+    }).then(function(r) { return r.json(); })
+      .then(function(d) {
+          if (d.success) {
+              var el = document.querySelector('.article-item[data-type="' + type + '"][data-id="' + id + '"]');
+              if (el) el.classList.add('item-read');
+          }
+      });
+}
+</script>
+</body>
+</html>

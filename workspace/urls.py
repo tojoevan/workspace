@@ -12,6 +12,8 @@ urlpatterns = [
 
     # Core
     path('', core_views.home, name='home'),
+    path('workspace/', core_views.workspace, name='workspace'),
+    path('ws/', core_views.workspace, name='workspace_short'),
     path('login/', core_views.login_view, name='login'),
     path('logout/', core_views.logout_view, name='logout'),
     path('search/', core_views.search, name='search'),

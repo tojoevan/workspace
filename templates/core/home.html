@@ -41,6 +41,7 @@
         <div class="flex items-center gap-8 flex-1 min-w-0">
             <a href="/" class="text-2xl font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors leading-none flex-shrink-0">工作台</a>
             <nav class="hidden lg:flex items-center gap-5 text-sm text-gray-400 flex-shrink-0">
+                <a href="{% url 'workspace_short' %}" class="hover:text-gray-700 dark:hover:text-gray-200 transition-colors whitespace-nowrap font-medium text-gray-500 dark:text-gray-400">工作台</a>
                 <a href="{% url 'todo:todo_list' %}" class="hover:text-gray-700 dark:hover:text-gray-200 transition-colors whitespace-nowrap">待办</a>
                 <a href="{% url 'notes:note_list' %}" class="hover:text-gray-700 dark:hover:text-gray-200 transition-colors whitespace-nowrap">笔记</a>
                 <a href="{% url 'rss:feed_list' %}" class="hover:text-gray-700 dark:hover:text-gray-200 transition-colors whitespace-nowrap">收件箱</a>
