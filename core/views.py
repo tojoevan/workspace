@@ -27,7 +27,7 @@ def login_view(request):
         # 首先尝试用用户名登录
         user = authenticate(request, username=username, password=password)
 
-        # 如果用户名登录失败，尝试用别名查找用户
+        # 如果用户名登录失败,尝试用别名查找用户
         if user is None:
             try:
                 profile = UserProfile.objects.get(alias=username)
@@ -73,7 +73,7 @@ def home(request):
         is_private=False
     ).select_related('user').order_by('-is_pinned', '-created_at')[:8]
 
-    # 如果用户已登录，额外获取其个人数据
+    # 如果用户已登录,额外获取其个人数据
     user_todos = []
     user_bookmarks = []
     combined_articles = []
@@ -492,14 +492,14 @@ def mark_all_read(request):
 
 @ensure_csrf_cookie
 def workspace(request):
-    ""工作台 - 三栏视图，最大化利用页面空间""
+    """Workbench - three column view maximizing page space."""
     if not request.user.is_authenticated:
         return redirect('login')
 
     filter_type = request.GET.get('filter', 'unread')
     per_page = 30
 
-    # --- 待办（左侧）---
+    # Left: Todos
     from todo.models import Todo
     pending_todos = Todo.objects.filter(
         user=request.user,
@@ -513,7 +513,7 @@ def workspace(request):
 
     today_count = pending_todos.filter(due_date__date=datetime.date.today()).count()
 
-    # --- 收件箱（中栏）---
+    # Center: RSS + News
     rss_articles = RSSArticle.objects.filter(
         feed__user=request.user
     ).select_related('feed')
@@ -543,7 +543,7 @@ def workspace(request):
     for a in news_articles:
         articles_list.append({
             'id': a.id, 'type': 'news', 'title': a.title,
-            'link': a.link, 'source': (a.source.name if a.source else '新闻'),
+            'link': a.link, 'source': (a.source.name if a.source else 'news'),
             'published_at': a.published_at, 'is_read': a.is_read,
             'is_starred': a.is_starred, 'is_read_later': a.is_read_later,
         })
@@ -551,7 +551,7 @@ def workspace(request):
     total = len(articles_list)
     articles = articles_list[:per_page]
 
-    # --- 笔记（右侧）---
+    # Right: Notes
     recent_notes = Note.objects.filter(
         user=request.user,
         is_archived=False
@@ -567,4 +567,82 @@ def workspace(request):
         'recent_notes': recent_notes,
     }
     return render(request, 'core/workspace.html', context)
+@ensure_csrf_cookie
+def workspace(request):
+    """Workbench - three column view maximizing page space."""
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    filter_type = request.GET.get('filter', 'unread')
+    per_page = 30
+
+    # Left: Todos
+    from todo.models import Todo
+    pending_todos = Todo.objects.filter(
+        user=request.user,
+        status='pending'
+    ).order_by('-is_pinned', '-priority', 'due_date', '-created_at')
+
+    in_progress_todos = Todo.objects.filter(
+        user=request.user,
+        status='in_progress'
+    ).order_by('-is_pinned', '-due_date')
+
+    today_count = pending_todos.filter(due_date__date=datetime.date.today()).count()
+
+    # Center: RSS + News
+    rss_articles = RSSArticle.objects.filter(
+        feed__user=request.user
+    ).select_related('feed')
+
+    news_articles = NewsArticle.objects.filter(
+        user=request.user
+    ).select_related('source')
+
+    if filter_type == 'starred':
+        rss_articles = rss_articles.filter(is_starred=True)
+        news_articles = news_articles.filter(is_starred=True)
+    elif filter_type == 'read_later':
+        rss_articles = rss_articles.filter(is_read_later=True)
+        news_articles = news_articles.filter(is_read_later=True)
+    elif filter_type == 'unread':
+        rss_articles = rss_articles.filter(is_read=False)
+        news_articles = news_articles.filter(is_read=False)
+
+    articles_list = []
+    for a in rss_articles:
+        articles_list.append({
+            'id': a.id, 'type': 'rss', 'title': a.title,
+            'link': a.link, 'source': a.feed.title,
+            'published_at': a.published_at, 'is_read': a.is_read,
+            'is_starred': a.is_starred, 'is_read_later': a.is_read_later,
+        })
+    for a in news_articles:
+        articles_list.append({
+            'id': a.id, 'type': 'news', 'title': a.title,
+            'link': a.link, 'source': (a.source.name if a.source else 'news'),
+            'published_at': a.published_at, 'is_read': a.is_read,
+            'is_starred': a.is_starred, 'is_read_later': a.is_read_later,
+        })
+    articles_list.sort(key=lambda x: x['published_at'] or datetime.datetime.min, reverse=True)
+    total = len(articles_list)
+    articles = articles_list[:per_page]
+
+    # Right: Notes
+    recent_notes = Note.objects.filter(
+        user=request.user,
+        is_archived=False
+    ).order_by('-updated_at')[:20]
+
+    context = {
+        'filter_type': filter_type,
+        'pending_todos': pending_todos[:15],
+        'in_progress_todos': in_progress_todos[:5],
+        'today_count': today_count,
+        'articles': articles,
+        'total_articles': total,
+        'recent_notes': recent_notes,
+    }
+    return render(request, 'core/workspace.html', context)
+
 
