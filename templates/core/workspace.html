@@ -107,6 +107,27 @@
             </div>
             {% endif %}
         </div>
+
+        <!-- 周期任务倒计时 -->
+        {% if recurring_todos %}
+        <div class="flex-shrink-0 border-t border-gray-200 dark:border-gray-800 px-4 py-3">
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">周期任务</p>
+            <div class="space-y-2">
+                {% for todo in recurring_todos %}
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-gray-600 dark:text-gray-300 truncate max-w-[70%]">{{ todo.title }}</span>
+                    {% if todo.next_due_at %}
+                    <span class="text-gray-400 flex-shrink-0 countdown-timer" data-due="{{ todo.next_due_at|date:'Y-m-d H:i:s' }}" data-type="{{ todo.get_recurrence_type_display }}">
+                        --
+                    </span>
+                    {% else %}
+                    <span class="text-gray-400">{{ todo.get_recurrence_type_display }}</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </aside>
 
     <!-- ====== 中栏：收件箱 ====== -->
@@ -286,6 +307,32 @@ function markRead(type, id) {
           }
       });
 }
+
+// Countdown timer for recurring tasks
+function updateCountdowns() {
+    document.querySelectorAll('.countdown-timer').forEach(function(el) {
+        var dueStr = el.dataset.due;
+        if (!dueStr) return;
+        var due = new Date(dueStr.replace(/-/g, '/'));
+        var now = new Date();
+        var diff = due - now;
+        if (diff <= 0) {
+            el.textContent = '已到期';
+            el.classList.add('text-orange-500');
+            return;
+        }
+        var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        var text = '';
+        if (days > 0) text = days + '天' + hours + '时';
+        else if (hours > 0) text = hours + '时' + mins + '分';
+        else text = mins + '分钟';
+        el.textContent = text;
+    });
+}
+updateCountdowns();
+setInterval(updateCountdowns, 60000);
 </script>
 </body>
 </html>
